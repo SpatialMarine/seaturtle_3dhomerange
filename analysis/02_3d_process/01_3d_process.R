@@ -1,0 +1,86 @@
+
+
+source("R/config.R")  # set data paths
+source("R/utils.R")
+
+
+## libraries
+library(lubridate)
+library(dplyr)
+library(akima)
+
+## import data
+ttdr <- read.csv(ttdrfile, sep=";", dec=",", head=TRUE)
+ttdr$date <- parse_date_time(ttdr$date, "Ymd HMS")
+
+ssm <- read.csv(ssmfile, sep=";", dec=",", head=TRUE)
+ssm$date <- parse_date_time(ssm$date, "Ymd HMS")
+
+## Calculate vertical error from TTDR
+ttdr$z.error <- z.error(depth.upper = ttdr$depth.up.er, depth.lower = ttdr$depth.lo.er)
+
+## Calculate horizontal error from SSM data
+ssm$xy.error <- xy.error(ssm)
+
+## Interpolate horizontal error to TTDR data
+ttdr$xy.error <- aspline(x=(as.numeric(ssm$date)), y=(ssm$xy.error), xout=(as.numeric(ttdr$date)))$y
+
+## Resample TTDR data from 5 min to 6H
+resamp <- resampTTDR(ttdr, ssm)
+ssm <- merge(ssm, resamp, by="date")
+
+## Reproject to metric system
+xy <- reproject(ssm$lon, ssm$lat)
+ssm <- cbind(ssm, xy)
+
+## Filter out NA data in detph
+ssm <- dplyr::filter(ssm, !is.na(depth_mean))
+
+## Calculate 3d HR with mkde
+ptt <- ssm$ptt[1]
+rasterfile <- paste0(outdir, ptt,"_mkde3d_","6h_", format(Sys.time(), "%Y%m%d%H%M%S"), ".grd")
+hr3ddata <- mkde3d(
+  x = ssm$x,
+  y = ssm$y,
+  z = ssm$depth_mean,
+  date = ssm$date,
+  z.error = ssm$z.error_mean,
+  xy.error = ssm$xy.error,
+  t.max = 390,
+  integration.step = 10,
+  voxel.xsize = 10000,
+  voxel.ysize = 10000,
+  voxel.zsize = 10,
+  extend.raster = 10000,
+  zll = 0,
+  crs = "+init=epsg:3035",
+  contours = c(0.50, 0.95),
+  rasterfile = rasterfile
+)
+
+# Plot mkde3d
+r <- stack(rasterfile)  # import raster
+#creating object with breaks at the threshold levels:
+brk <- hr3ddata$volumnes$threshold
+brk <- c(0, brk, max(maxValue(r)))
+plot(r, breaks=brk, col=c("white", "green", "red"))
+
+
+
+
+## Calculate 3d HR with ks
+# ptt <- ssm$ptt[1]
+# rasterfile <- paste0(outdir, ptt,"_mkde3d_","6h_", format(Sys.time(), "%Y%m%d%H%M%S"), ".grd")
+ks3ddata <- ks3d(
+  x = ssm$x,
+  y = ssm$y,
+  z = ssm$depth_mean,
+  voxel.xsize = 10000,
+  voxel.ysize = 10000,
+  voxel.zsize = 10,
+  extend.raster = 10000,
+  zll = 0,
+  crs = "+init=epsg:3035"
+)
+
+
