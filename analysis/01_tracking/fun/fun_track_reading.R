@@ -21,6 +21,17 @@
 #------------------------------------------------------------------------------------
 
 
+
+
+# Functions created by D.March / GitHub: @dmarch
+
+# Updated by J. Menéndez-Blázquez (@jmenblaz) for standarization of variables names
+# following Sequeria et al., 2021
+
+
+
+
+
 #--------------------------------------------------------------------------------------
 # batchUB       Convert batch file of track data from University of Barcelona
 #--------------------------------------------------------------------------------------
@@ -231,7 +242,7 @@ readTrack <- function(csvfiles){
   ## process and append files
   for (i in 1:length(csvfiles)){
     data <- read.csv(csvfiles[i], header=TRUE)  # read csv
-    data$date <- parse_date_time(data$date, "Ymd HMS") # parse time
+    data$time <- parse_date_time(data$time, "Ymd HMS") # parse time
     dt_list[[i]] <- data  # append to list
   }
   

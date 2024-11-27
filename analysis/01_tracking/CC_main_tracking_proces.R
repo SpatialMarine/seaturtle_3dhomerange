@@ -9,8 +9,18 @@
 # We will select turtles that were free swimming prior to capture and release. Exclude those
 # capture from longline or released from a rescue center.
 
+
+
+# tracking functions paths
+funs <- list.files("analysis/01_tracking/fun/", pattern = "\\.R$", full.names = TRUE)
+# read .R scripts with source
+sapply(funs, source)
+
+
+
+
 #---------------------------------------------------------------
-# 1. Set parameters for blueshark
+# 1. Set parameters for Caretta caretta
 #---------------------------------------------------------------
 sp_code <- "CAR"  # species code
 tag_type <- "PTT"
@@ -51,6 +61,11 @@ source("scr/fun_track_plot.R")  # plot tracking data
 source("scr/fun_track_proc.R")  # miscellanea of processing functions
 source("scr/fun_ttdr.R")
 
+# input dir for raw tracking position (location Argos)
+paste0(main_dir,"/input/tracking/loc/loc")
+
+
+
 #---------------------------------------------------------------
 # 3. Import external data
 #---------------------------------------------------------------
@@ -73,7 +88,7 @@ cores <- detectCores()-2
 
 # Step 1. Pre-process data and standardize format
 # Select data for turtles with TTDR that remain within the Western Mediterranean
-source("analysis/tracking/scr/preproc_CAR.R")
+source("analysis/01_tracking/scr/01_preproc_CAR.R")
 
 # Step 2. Filter location data
 # Filtering is based on selected parameters from above

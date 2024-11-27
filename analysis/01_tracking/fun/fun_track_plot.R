@@ -10,6 +10,14 @@
 # two.y               Plot tow-y axis function
 
 
+
+# Functions created by D.March / GitHub: @dmarch
+
+# Updated by J. Menéndez-Blázquez for standarization of variables names
+# following Sequeria et al., 2021
+
+
+
 #-----------------------------------------------------------------
 # diffTimeHisto       Time diff histo
 #-----------------------------------------------------------------
@@ -68,35 +76,34 @@ map_argos <- function (data){
   wm <- suppressMessages(fortify(countriesHigh))
   
   ### Get metadata
-  sdate <- data$date[1]
-  edate <- data$date[nrow(data)]
+  sdate <- data$time[1]
+  edate <- data$time[nrow(data)]
   days <- round(as.numeric(difftime(edate, sdate, units="days")))
-  
+
   ### Define extension for plot
-  xl <- extendrange(data$lon, f = 0.2)
-  yl <- extendrange(data$lat, f = 0.2)
+  xl <- extendrange(data$longitude, f = 0.2)
+  yl <- extendrange(data$latitude, f = 0.2)
   
   ### Plot
   p <- ggplot() +
     geom_polygon(data = wm, aes_string(x = "long", y = "lat", group = "group"),
-                 fill = grey(0.3)) +
+                 fill = grey(0.5)) +
     coord_quickmap(xlim = xl, ylim = yl, expand = TRUE) +
     xlab("Longitude") +
     ylab("Latitude") +
     geom_point(data = data,
-               aes_string(x = "lon", y = "lat", group = NULL, colour = "lc"),
+               aes_string(x = "longitude", y = "latitude", group = NULL, colour = "argosLC"),
                size = 2) +
     geom_path(data = data,
-              aes_string(x = "lon", y = "lat", group = NULL)) +
-    labs(title = paste(data$sp_code[1], "Id:", data$id[1]),
-         subtitle = paste("Start:", sdate, "End:", edate, "(", days, "days)")) 
-  
+              aes_string(x = "longitude", y = "latitude", group = NULL)) +
+    labs(title = paste(data$sp_code[1], "Id:", data$organismID[1]),
+         subtitle = paste("Start:", sdate, "End:", edate, "(", days, "days)")) +
+    theme_bw()
   
   return(p)
   
 }
 #-----------------------------------------------------------------
-
 
 
 #-----------------------------------------------------------------
@@ -112,13 +119,13 @@ mapBehaviour <- function (data){
   wm <- suppressMessages(fortify(countriesHigh))
 
   ### Get metadata
-  sdate <- data$date[1]
-  edate <- data$date[nrow(data)]
+  sdate <- data$time[1]
+  edate <- data$time[nrow(data)]
   days <- round(as.numeric(difftime(edate, sdate, units="days")))
   
   ### Define extension for plot
-  xl <- extendrange(data$lon, f = 0.2)
-  yl <- extendrange(data$lat, f = 0.2)
+  xl <- extendrange(data$longitude, f = 0.2)
+  yl <- extendrange(data$latitude, f = 0.2)
   
   ### Plot
   p <- ggplot() +
@@ -128,12 +135,12 @@ mapBehaviour <- function (data){
     xlab("Longitude") +
     ylab("Latitude") +
     geom_point(data = data,
-               aes_string(x = "lon", y = "lat", group = NULL, colour = "label"),
+               aes_string(x = "longitude", y = "latitude", group = NULL, colour = "label"),
                size = 3) +
     scale_colour_manual(values = c("steelblue", "lightblue3", "red", "gold", "grey")) +
     geom_path(data = data,
               aes_string(x = "lon", y = "lat", group = NULL)) +
-    ggtitle(paste("ID", data$id[1], "Start:", sdate, "End:", edate, "(", days, "days)"))
+    ggtitle(paste("ID", data$organismID[1], "Start:", sdate, "End:", edate, "(", days, "days)"))
   
   return(p)
   

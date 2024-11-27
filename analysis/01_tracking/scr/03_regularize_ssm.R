@@ -1,5 +1,5 @@
 #-------------------------------------------------------------------------------------
-# 03_regularize_foieGras     Interpolate tracks into regular time steps using foieGras
+# 03_regularize_ssm    Interpolate tracks into regular time steps using aniMotum (new version of foiegras)
 #-------------------------------------------------------------------------------------
 # This script processes animal tracking data following a common approach between
 # different species.
@@ -7,6 +7,7 @@
 # Main steps are:
 # - Regularize tracks
 
+source("setup.R")
 
 
 #---------------------------------------------------------------
@@ -15,12 +16,14 @@
 cl <- makeCluster(cores)
 registerDoParallel(cl)
 
+
 #---------------------------------------------------------------
 # 1. Set data repository
 #---------------------------------------------------------------
+# input_data for L1 locations processed previously (02_filter_locs.R)
 
-input_data <- paste0(output_dir, "/tracking/", sp_code, "/L1_locations")
-output_data <- paste0(output_dir, "/tracking/", sp_code, "/L2_locations")
+input_data <- paste0(main_dir,"/input/tracking/loc/L1")
+output_data <- paste0(main_dir,"/input/tracking/loc/L2")
 if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 
 
@@ -29,7 +32,7 @@ if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 #---------------------------------------------------------------
 
 # import all location files
-loc_files <- list.files(input_data, full.names = TRUE, pattern = "L1_locations.csv")
+loc_files <- list.files(input_data, full.names = TRUE, pattern = "L1_loc.csv")
 df <- readTrack(loc_files)
 
 

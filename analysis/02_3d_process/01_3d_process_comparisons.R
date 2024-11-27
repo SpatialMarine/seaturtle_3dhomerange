@@ -1,7 +1,28 @@
 
 
-source("R/config.R")  # set data paths
-source("R/utils.R")
+
+
+
+source("setup.R")  # set data paths
+source("analysis/02_3d_process/fun/fun_3d_utils.R")
+
+
+# dirs
+
+## Set paths
+
+datadir = "C:/Users/david/Google Drive/TORTUGAS OCEANOGRAFAS/data"
+
+# plot for one turtle:
+# Use L1 for ttdr files  and L2 for locs files
+
+
+ttdrfile = "C:/Users/david/Google Drive/TORTUGAS OCEANOGRAFAS/data/animal/loggerhead/151935/L1/L1_TTDR_151935.csv"
+ssmfile = "C:/Users/david/Google Drive/TORTUGAS OCEANOGRAFAS/data/animal/loggerhead/151935/L2/L2_ssm_DCRW_6H_151935.csv"
+
+
+outdir = "D:/3dhr/"
+
 
 
 ## libraries

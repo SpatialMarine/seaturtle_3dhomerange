@@ -242,13 +242,13 @@ summarizeId <- function(data){
   # data is a data.frame with all tracking data per species
   
   df <- data %>%
-    arrange(date) %>%  # order by date
-    group_by(id) %>%  # select group info
-    summarize(date_deploy = first(date),
-              lon_deploy = first(lon),
-              lat_deploy = first(lat),
-              date_last = last(date),
-              time_interval_h = round(median(as.numeric(difftime(tail(date, -1), head(date, -1), units="hours")))),
+    arrange(time) %>%  # order by date
+    group_by(organismID) %>%  # select group info
+    summarize(date_deploy = first(time),
+              lon_deploy = first(longitude),
+              lat_deploy = first(latitude),
+              date_last = last(time),
+              time_interval_h = round(median(as.numeric(difftime(tail(time, -1), head(time, -1), units="hours")))),
               n_loc = n()) %>%  # get first and last observations
     mutate(duration_h = round(difftime(date_last, date_deploy, units="hours")))  # calculate duration of the track
   
@@ -265,8 +265,8 @@ summarizeSim <- function(data){
   
   
   df <- data %>%
-    arrange(date) %>%  # order by date
-    group_by(id, trip) %>%  # select group info
+    arrange(time) %>%  # order by date
+    group_by(organismID, trip) %>%  # select group info
     summarize(n_sim = length(unique(nsim)))
   
   return(df)
@@ -284,14 +284,14 @@ summarizeTrips <- function(data){
   library(geosphere)
   
   df <- data %>%
-    arrange(date) %>%  # order by date
-    group_by(id, trip) %>%  # select group info
-    summarize(date_deploy = first(date),
-              lon_deploy = first(lon),
-              lat_deploy = first(lat),
-              date_last = last(date),
-              time_interval_h = median(as.numeric(difftime(tail(date, -1), head(date, -1), units="hours"))),
-              distance_km = sum(distGeo(p1 = cbind(lon, lat)), na.rm=TRUE)/1000,  # segment distance
+    arrange(time) %>%  # order by date
+    group_by(organismID, trip) %>%  # select group info
+    summarize(date_deploy = first(time),
+              lon_deploy = first(longitude),
+              lat_deploy = first(latitude),
+              date_last = last(time),
+              time_interval_h = median(as.numeric(difftime(tail(time, -1), head(time, -1), units="hours"))),
+              distance_km = sum(distGeo(p1 = cbind(longitude, latitude)), na.rm=TRUE)/1000,  # segment distance
               n_loc = n()) %>%  # get first and last observations
     mutate(duration_h = round(difftime(date_last, date_deploy, units="hours")))  # calculate duration of the track
   
