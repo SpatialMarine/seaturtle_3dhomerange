@@ -14,13 +14,8 @@
 
 # Common workflow based in Sequeira et al., 2021
 # A standardisation framework for bio‐logging data to advance ecological research and conservation
-# Stadarization made it by J.Menéndez-Blázquez
+# Stadarization made it by J.Menéndez-Blázquez - @jmenblaz
 
-
-# Main steps are:
-# - Selection of tracks given a defined criteria
-# - Filter location data: Near-duplicate positions, filter, angle and point on land
-# - Different processing for PTT/GPS (eg. time gaps, LC class)
 
 # Based in the original scripts of D.March (@dmarch), update by J.Menéndez-Blázquez (@jmenblaz)
 

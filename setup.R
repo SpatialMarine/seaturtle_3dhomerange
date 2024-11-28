@@ -11,17 +11,24 @@ cpu <- "jmb"
 
 # packages
 
+# devtools::install_github("ianjonsen/aniMotum")
 # devtools::install_github("dmarch/animalsensor")
+# remotes::install_github("jmlondon/pathroutr")
+# install.packages("pathroutr", repos = "https://jmlondon.r-universe.dev")
+
 
 # Load required packages
 pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", "reshape2", "tools", # data manipulation
                "foreach", "doParallel",  # parallel computing
-               "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", #spatial
+               "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", "rnaturalearthhires", #spatial
                "ks", "mkde", "akima", # 3D spatial
                "ggplot2", "gridExtra", "grid", #plot
-               "animalsensor", "aniMotum", "argosfilter")  # tracking process tools
+               "animalsensor", "aniMotum", "argosfilter", "pathroutr", "sfnetworks")  # tracking process tools
 
+# packages notes:
+# · sfnetworks is required by pathroutr package
 
+devtools::install_github("ianjonsen/foieGras")
 
 
 # ------------------------------------------------------------------------------

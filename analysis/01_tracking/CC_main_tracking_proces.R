@@ -50,8 +50,9 @@ filt_ang <- c(15, 25) # value of the angle using in sdafilter, no spikes are rem
 filt_distlim <- c(2500, 5000) # value of the limite distance using in sdafilter, no spikes are removed if ang=-1
 
 
-# Track regularization
-reg_time_step <- 2  # time step to interpolate positions, in hours
+# Track regularization - State Space Model
+#   (see 03_regularize_ssm.R)
+reg_time_step <- 1  # time step to interpolate positions, in hours
 
 # TTDR data -- in 04_process_ttdr.R
 tfreq <- 5 * 60  # time interval from TTDR data, in seconds
