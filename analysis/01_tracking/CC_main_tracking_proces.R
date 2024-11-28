@@ -23,7 +23,7 @@ sapply(funs, source)
 # 1. Set parameters for Caretta caretta
 #---------------------------------------------------------------
 sp_code <- "CAR"  # species code
-tag_type <- "PTT"
+# tag_type <- "PTT"
 
 # Trip definition -- in 02_filter_locs.R
 trip_time_gap <- 7 * 24  # Tracks with data gaps in excess of [seg_time_gap] hours were broken up for separate modeling

@@ -53,9 +53,9 @@ metadata <- read.csv(paste0(input_data,"/metadataL0.csv"))
 # extract organismID from L0_loc.csv
 organismIDs <- unique(df$organismID)
 
-cores <- detectCores() - 1
-cl <- makeCluster(cores)
-registerDoParallel(cl)
+# cores <- detectCores() - 1
+# cl <- makeCluster(cores)
+# registerDoParallel(cl)
 
 t <- Sys.time()
 
@@ -232,8 +232,8 @@ selected <- metadata[sel,]
 discarded <- metadata[-sel,]
 
 # Export L1 metadata
-write.csv(selected, paste0(output_data, "/tracking/metadata/metadataL1.csv"), row.names=F)
-write.csv(discarded, paste0(output_data, "/tracking/metadata/discardedL1.csv"), row.names=F)
+write.csv(selected, paste0(output_data, "/metadataL1.csv"), row.names=F)
+write.csv(discarded, paste0(output_data, "/discardedL1.csv"), row.names=F)
 
 
 

@@ -116,7 +116,7 @@ filter_dup  <- function (data, step.time = 2/60, step.dist = 0.001){
   return(data)
 }
 #----------------------------------------------------------------------------------------------
-data <- sdata
+
 
 #----------------------------------------------------------------------------------------------
 # filter_speed     Function to filter speed using SDLfilter
