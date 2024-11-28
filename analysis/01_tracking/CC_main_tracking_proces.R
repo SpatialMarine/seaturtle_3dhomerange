@@ -42,7 +42,7 @@ filt_step_time <- 2/60  # time difference to consider duplicated positions, in h
 filt_step_dist <- 1/1000  # spatial distance to consider duplicated poisitions, in km
 filt_land <- FALSE  # remove locations on land
 
-filt_vmax <- 2  # -- in 02_filter_locs.R
+filt_vmax <- 2  # -- in 02_filter_locs.R 
                 # value of the maximum of velocity using in sdafilter in m/s
                 # seaturtle == 2 m/s
 
@@ -53,6 +53,14 @@ filt_distlim <- c(2500, 5000) # value of the limite distance using in sdafilter,
 # Track regularization - State Space Model
 #   (see 03_regularize_ssm.R)
 reg_time_step <- 1  # time step to interpolate positions, in hours
+
+# For marine species (turtles, whales, sharks, seals) avoid  
+# FALSE or TRUE for conduct a SSM model taken into account lands areas or other barries
+# for other barries check 03_regularize_ssm.R and the different steps
+rerouted <- TRUE
+map_scale <- 10 # aturalearth scales 100, 50 or 10 (R package require for 10)
+dist_buffer <- 5000 # distance from locations point to shore (default 50km, it depends of the study scales)
+
 
 # TTDR data -- in 04_process_ttdr.R
 tfreq <- 5 * 60  # time interval from TTDR data, in seconds

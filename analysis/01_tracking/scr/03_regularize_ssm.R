@@ -11,9 +11,9 @@
 
 # Note: variables or fields names are standardized following Sequeria et al., 2021
 
-#' A standardization framework for bio‐logging data to advance ecological research and conservation
-#' standardization and use aniMotum for regularize track position 
-#' by J.Menéndez-Blázquez - @jmenblaz
+# A standardization framework for bio‐logging data to advance ecological research and conservation
+# standardization and use aniMotum for regularize track position 
+# by J.Menéndez-Blázquez - @jmenblaz
 
 
 
@@ -49,7 +49,7 @@ organism_meta <- metadata %>%
 # 3. Regularize each track using a SSM      ---------------------------------
 t <- Sys.time()
 
-cores <- detectCores()
+cores <- detectCores() - 2
 cl <- makeCluster(cores)
 registerDoParallel(cl)
 
@@ -105,7 +105,7 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
   indata <- dplyr::filter(indata, !is.na(lc))
   
   
-  # fit SSM  ------------------------------------------
+  # fit State Space Model (SSM)  ------------------------------------------
 
   # we turn sdafilter off because we previously filtered data 
   #   (see 02_filter_locs.R)
@@ -115,8 +115,6 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
   # ssm models: "crw" - correlated random walk: Movements are random and correlated in direction and magnitude
   #              "rw" - random walk: Movements are random in direction and magnitude.
   #              "mp" - Move persistence: Movements are random with correlation in direction and magnitude that varies in time
-  
-
   
   fit <- fit_ssm(indata, model = "crw", time.step = reg_time_step,
                  control = ssm_control(verbose = 0), spdf = FALSE,
@@ -128,10 +126,17 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
   # Josh M. London. (2020)
   # https://zenodo.org/records/5522909#.YnPxEy_b1qs
   
+  # For other barriers to taken into account during the regularize position of tracking
+  # e.g., roads, rails, protected areas limits, etc (spatial polygons) 
+  # see detail of function in -> ?pathroutr::prt_visgraph
   
-  fit_rerouted <- route_path(fit, what = "predicted", map_scale = 10)
+  #' see main_tracking_proces.R for @params of pathroutr::routepath() function
+  if (rerouted == TRUE) {
+    fit <- route_path(fit, what = "predicted", map_scale = map_scale, dist = dist_buffer)
+  }
   
-  # Fit Time-varying move persistence
+  
+  # Fit Time-varying move persistence (MPM) ------------------------------------
   # When the data have minimal measurement error (e.g. GPS locations)
   fmp <- fit_mpm(fit, what = "predicted", model = "jmpm", control = mpm_control(verbose = 0))
   
@@ -140,21 +145,25 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
   
   # mapping or plot ssm model
   # map(fit, what = "predicted")
+ 
   
-
   # get or extract locations for SSM and MPM
   # grab() - Extract fitted/predicted/observed locations from a aniMotum
   #          model, with or without projection information
   
-  # get fitted locations (SSM)
-  data <- data.frame(grab(fit, what = "predicted", as_sf = FALSE))
-
-  data <- data.frame(grab(fit, what = "rerouted", as_sf = FALSE))
+  #  for state space model locations (SSM) 
+  if (rerouted == TRUE) {
+    data <- data.frame(grab(fit, what = "rerouted", as_sf = FALSE)) # rerouted = predict locations offshore
+  } else {
+    data <- data.frame(grab(fit, what = "predicted", as_sf = FALSE))
+  }
   
-  # get fitted behavioral state (MPM) - Time-varying move persistence
+  # for behavioral state (MPM) - Time-varying move persistence metric (g)
   datafmp <- data.frame(grab(fmp, what = "fitted", as_sf = FALSE))
 
-  # combine and arrange results data fpr SSM and MPM
+  
+  
+  # combine and arrange results data for SSM and MPM (g)
   data <- data %>%
     # join datasets
     left_join(datafmp, by=c("id", "date")) %>%
@@ -166,150 +175,21 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
   
   
   
-  # export/save L2 locations results (SSM preducted models and MPM information)
-  output_data <- paste0(output_dir, "/tracking/locdata/L2_loc/")
-  if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
-  outfile <- sprintf(paste0(output_data, "%s_L2_loc.csv"), organismID)
+  # export/save L2 locations results (SSM predicted models and MPM information, g)
+  outfile <- sprintf(paste0(output_data,"/","%s_L2_loc.csv"), organismID)
   write.csv(data, outfile, row.names = F)
   
   # export convergence status
   convergence <- data.frame(organismID = organismID, tripID = fit$id, converged_fit = fit$converged, converged_fmp = fmp$converged)
-  outfile <- sprintf(paste0(output_data, "%s_L2_convergence.csv"), organismID)
+  outfile <- sprintf(paste0(output_data,"/","%s_L2_convergence.csv"), organismID)
   write.csv(convergence, outfile, row.names = FALSE)
   
-  
   # plot figures
   p <- mapL1(data = data)
-  out_file <- paste0(output_data, "/", i, "_L2_locations.png")
+  out_file <- paste0(output_data,"/",organismID,"_L2_loc.png")
   ggsave(out_file, p, width=30, height=15, units = "cm")  # plot figures
   
-  
-  
 }
-
-
-stopCluster(cl) # Stop cluster
-print("Regularization ready")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-foreach(i=tags, .packages=c("dplyr", "ggplot2", "aniMotum", "stringr")) %dopar% {
-#for (i in tags){
-  
-  print(paste("Processing tag", i))
-  # 
-  # # import data
-  # loc_file <- paste0(input_data, "/", i, "_L1_locations.csv")
-  # data <- readTrack(loc_file)
-  
-  # subset data
-  # filter by id and selected trips
-  data <- filter(df, id == i, trip %in% trips$trip)
-
-  ###### State-Space Model
-  
-  # convert to foieGras format
-  if(tag_type == "GPS") indata <- data %>% dplyr::select(trip, date, lc, lon, lat) %>% rename(id = trip) 
-  if(tag_type == "PTT") indata <- data %>% dplyr::select(trip, date, lc, lon, lat, smaj, smin, eor) %>% rename(id = trip) 
-  
-  # filter location class data with NA values
-  # very few cases, but creates an error in fit_ssm
-  indata <- dplyr::filter(indata, !is.na(lc))
-  
-  # fit SSM
-  # we turn sdafilter off because we previously filtered data
-  # we run the model with multiple trips at once
-  fit <- fit_ssm(indata, model = "crw", time.step = reg_time_step, verbose = 0, spdf = FALSE)
-  
-  # get fitted locations
-  # segments that did not converge were not consider
-  data <- data.frame(grab(fit, what = "predicted", as_sf = FALSE))
-  data <- data %>% rename(trip = id) %>% arrange(date)
-  data <- cbind(id = i, data)
-  
-  # check if points on land
-  #data$onland <- point_on_land(lat = data$lat, lon = data$lon, land = land)
-  
-  # export track data into individual folder at output path
-  out_file <- paste0(output_data, "/", i, "_L2_locations.csv")
-  write.csv(data, out_file, row.names = FALSE)
-  
-  # export convergence status
-  convergence <- data.frame(id = i, trip = fit$id, converged = fit$converged)
-  out_file <- paste0(output_data, "/", i, "_L2_convergence.csv")
-  write.csv(convergence, out_file, row.names = FALSE)
-  
-  # plot figures
-  p <- mapL1(data = data)
-  out_file <- paste0(output_data, "/", i, "_L2_locations.png")
-  ggsave(out_file, p, width=30, height=15, units = "cm")
-}
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -317,10 +197,10 @@ foreach(i=tags, .packages=c("dplyr", "ggplot2", "aniMotum", "stringr")) %dopar% 
 
 #---------------------------------------------------------------
 # 4. Summarize processed data
-#---------------------------------------------------------------
+
 
 # import all location files
-loc_files <- list.files(output_data, full.names = TRUE, pattern = "L2_locations.csv")
+loc_files <- list.files(output_data, full.names = TRUE, pattern = "L2_loc.csv")
 df <- readTrack(loc_files)
 
 # import convergence files
@@ -331,17 +211,18 @@ data_proc <- lapply(loc_files, read.csv) %>% rbindlist
 tripstats <- summarizeTrips(df)
 
 # combine track data summary and convergence status
-comb <- merge(tripstats, data_proc, by=c("id", "trip"))
+comb <- merge(tripstats, data_proc, by=c("organismID", "trip"))
 
 # export table
-out_file <- paste0(output_data, "/", sp_code, "_summary_ssm.csv")
+out_file <- paste0(output_data, "/","L2_summary_ssm.csv")
 write.csv(comb, out_file, row.names = FALSE)
 
 
-#---------------------------------------------------------------
-# Stop cluster
-#---------------------------------------------------------------
-stopCluster(cl)
+# -------------------------------------------------------
+
+t - Sys.time()
+stopCluster(cl) # Stop cluster
+print("Regularization ready (fitted SSM/MPM)")
 
 
 print("Regularization ready")
