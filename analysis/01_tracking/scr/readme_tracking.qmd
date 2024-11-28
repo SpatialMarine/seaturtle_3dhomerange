@@ -1,0 +1,21 @@
+---
+title: "readme_tracking"
+author: "J.Ménendez-Blázquez | @jmenblaz"
+format: html
+editor: visual
+---
+
+Confidence intervals (CI) for predicted loc positions (SSM)
+
+Values such as `lat.025`, `lat.975,` `lon.025`, `lon.975` refer to confidence intervals (CI) ranging from 2.5% to 97.5% for the latitude coordinates (and similarly for longitude).
+
+These CIs do not seem to be directly included in your `data.frame` called `ssm`. However, you can calculate them using the `latitude` and `y.se` columns (or `longitude` and `x.se` for longitude), assuming the standard deviations (`x.se` and `y.se`) are used to compute the intervals under a normal distribution.
+
+Add after regularize position in State Space Models (03_regularize_ssm.R)
+
+|                  |                  |
+|------------------|------------------|
+| Confident levels | Critic value (Z) |
+| 90%              | 1.645            |
+| 95%              | 1.96             |
+| 99%              | 2.576            |

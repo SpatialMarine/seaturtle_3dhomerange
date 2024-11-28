@@ -174,6 +174,17 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
     dplyr::select(organismID, everything())
   
   
+  # Add confience intervasls (CI) from latitud and longitud position based in
+  # standard deviation (SE)
+  
+  data <- data %>%
+    mutate(
+      lat.025 = latitude - 1.96 * y.se, # IC inferior (2.5%)
+      lat.975 = latitude + 1.96 * y.se, # IC superior (97.5%)
+      lon.025 = longitude - 1.96 * x.se, # IC inferior (2.5%)
+      lon.975 = longitude + 1.96 * x.se  # IC superior (97.5%)
+    )
+  
   
   # export/save L2 locations results (SSM predicted models and MPM information, g)
   outfile <- sprintf(paste0(output_data,"/","%s_L2_loc.csv"), organismID)
@@ -224,5 +235,3 @@ t - Sys.time()
 stopCluster(cl) # Stop cluster
 print("Regularization ready (fitted SSM/MPM)")
 
-
-print("Regularization ready")
