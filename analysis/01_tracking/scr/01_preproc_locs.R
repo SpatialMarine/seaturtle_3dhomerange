@@ -1,12 +1,14 @@
 #-----------------------------------------------------------------------------------------
 # 01_preproc_CAR.R        Pre-process loggerhead tracking data
 #-----------------------------------------------------------------------------------------
+
 # This script pre-processes tracking data. The main goal is to standardize among multiple
 # formats (tag manufacturers, custom pre-processing from different labs) and generate a
 # common and standardized format to then follow a common workflow
 
 # Common workflow based in Sequeira et al., 2021
 # A standardisation framework for bio‐logging data to advance ecological research and conservation
+# Stadarization made it by J.Menéndez-Blázquez
 
 # Input data is found as Argos raw data per individual (= ptt) in "loc" folder
 # example of input folder structure

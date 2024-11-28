@@ -25,20 +25,27 @@ sapply(funs, source)
 sp_code <- "CAR"  # species code
 tag_type <- "PTT"
 
-# Trip definition
+# Trip definition -- in 02_filter_locs.R
 trip_time_gap <- 7 * 24  # Tracks with data gaps in excess of [seg_time_gap] hours were broken up for separate modeling
 
-# Track selection
+# Trips selection
 sel_min_loc <- 20  # minimum number of locations
-sel_min_dur <- 10 * 24 # minimum durantion of track, in hours
-sel_exclude <- NULL # custom selection of tags based on exploration of data
-sel_min_dist <- 15
+sel_min_dist <- 15  # minimum of distance (15 km)  
+sel_min_dur <- 10 * 24 # minimum duration of track, in hours
+
+sel_exclude <- NULL  #custom selection of tags based on exploration of data
 
 # Track filtering
+#' @params for argosfilter::sdafilter()
+
 filt_step_time <- 2/60  # time difference to consider duplicated positions, in hours
 filt_step_dist <- 1/1000  # spatial distance to consider duplicated poisitions, in km
 filt_land <- FALSE  # remove locations on land
-filt_vmax <- 2  # value of the maximum of velocity using in sdafilter in m/s
+
+filt_vmax <- 2  # -- in 02_filter_locs.R
+                # value of the maximum of velocity using in sdafilter in m/s
+                # seaturtle == 2 m/s
+
 filt_ang <- c(15, 25) # value of the angle using in sdafilter, no spikes are removed if ang=-1
 filt_distlim <- c(2500, 5000) # value of the limite distance using in sdafilter, no spikes are removed if ang=-1
 
@@ -46,13 +53,20 @@ filt_distlim <- c(2500, 5000) # value of the limite distance using in sdafilter,
 # Track regularization
 reg_time_step <- 2  # time step to interpolate positions, in hours
 
-# TTDR data
+# TTDR data -- in 04_process_ttdr.R
 tfreq <- 5 * 60  # time interval from TTDR data, in seconds
 
 
 #---------------------------------------------------------------
 # 2. Set data paths and import libraries
 #---------------------------------------------------------------
+
+
+# tracking functions paths
+funs <- list.files("analysis/01_tracking/fun/", pattern = "\\.R$", full.names = TRUE)
+# read .R scripts with source
+sapply(funs, source)
+
 
 # Load dependencies
 source("setup.R")

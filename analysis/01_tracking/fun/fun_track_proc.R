@@ -4,13 +4,28 @@
 # This script contains the following custom functions:
 #
 # embc_vars         Estimate EMbC movement variables
+# filter_dup        Remove near-duplicate positions
+# filter_speed
 # filter_track      Function to convert L0 to L1 location using SDLfilter
+
 # landMask          Funcion to check if a track falls into the oceanMask
 # summarizeId       Sumarize tracking data per id
+
 # summarizeTrips    Sumarize tracking data per trip
 # point_on_land     Check if location overlap with landmask
+
 # timedif           Return time difference from a time series of consecutive records
 # timedif.segment   Segment trips based on temporal threshold
+
+
+
+
+# Functions created by D.March / GitHub: @dmarch
+
+# Updated by J. Menéndez-Blázquez for standardization of variables names
+# following Sequeria et al., 2021
+
+
 
 
 
@@ -59,43 +74,49 @@ filter_dup  <- function (data, step.time = 2/60, step.dist = 0.001){
   
   require(SDLfilter)
   
-  
   ## Keep original number of locations
   loc0 <- nrow(data)
   
   ## Convert standard format to SDLfilter
   
   # Standardize Location clasess
-  data$lc <- as.character(data$lc)
-  data$lc[data$lc == "A"] <- -1 
-  data$lc[data$lc == "B"] <- -2
-  data$lc[data$lc == "Z"] <- -9
-  data$lc[data$lc == "G"] <- 4
-  data$lc <- as.numeric(data$lc)
+  data$argosLC <- as.character(data$argosLC)
+  data$argosLC[data$argosLC == "A"] <- -1 
+  data$argosLC[data$argosLC == "B"] <- -2
+  data$argosLC[data$argosLC == "Z"] <- -9
+  data$argosLC[data$argosLC == "G"] <- 4
+  data$argosLC <- as.numeric(data$argosLC)
   
-  # Rename columns
-  names(data)[names(data)=="date"] <- "DateTime"
-  names(data)[names(data)=="lc"] <- "qi"
+  # Rename columns from Sequeria et al., 2021 to specific names
+  # in order to applied in SDLfilter::dupfilter()
+  
+  names(data)[names(data)=="argosLC"] <- "qi"
+  names(data)[names(data)=="latitude"] <- "lat"
+  names(data)[names(data)=="longitude"] <- "lon"
+  names(data)[names(data)=="organismID"]  <- "id"
+  names(data)[names(data)=="time"]     <- "DateTime"
   
   ### Remove duplicated locations, based on both time and space criteria
   data <- dupfilter(data.frame(data), step.time=step.time, step.dist=step.dist, conditional = FALSE)
   
-  ## Back transform data.frame to standar format
-  
+  ## Back transform data.frame to standar format Sequeria et al., 2021
   # Rename columns
-  names(data)[names(data)=="DateTime"] <- "date"
-  names(data)[names(data)=="qi"] <- "lc"
+  names(data)[names(data) == "qi"] <- "argosLC"
+  names(data)[names(data) == "lat"] <- "latitude"
+  names(data)[names(data) == "lon"]  <- "longitude"
+  names(data)[names(data) == "id"]   <- "organismID"
+  names(data)[names(data) == "DateTime"]     <- "time"
   
   # Standardize Location clasess
-  data$lc[data$lc == -1] <- "A" 
-  data$lc[data$lc == -2] <- "B"
-  data$lc[data$lc == 4] <- "G" 
+  data$argosLC[data$argosLC == -1] <- "A" 
+  data$argosLC[data$argosLC == -2] <- "B"
+  data$argosLC[data$argosLC == 4] <- "G" 
   
   ## Prepare output
   return(data)
 }
 #----------------------------------------------------------------------------------------------
-
+data <- sdata
 
 #----------------------------------------------------------------------------------------------
 # filter_speed     Function to filter speed using SDLfilter
@@ -114,31 +135,41 @@ filter_speed  <- function (data, vmax = 10.8, method = 1){
   ## Convert standard format to SDLfilter
   
   # Standardize Location clasess
-  data$lc <- as.character(data$lc)
-  data$lc[data$lc == "A"] <- -1 
-  data$lc[data$lc == "B"] <- -2
-  data$lc[data$lc == "Z"] <- -9
-  data$lc[data$lc == "G"] <- 4
-  data$lc <- as.numeric(data$lc)
+  data$argosLC <- as.character(data$argosLC)
+  data$argosLC[data$argosLC == "A"] <- -1 
+  data$argosLC[data$argosLC == "B"] <- -2
+  data$argosLC[data$argosLC == "Z"] <- -9
+  data$argosLC[data$argosLC == "G"] <- 4
+  data$argosLC <- as.numeric(data$argosLC)
   
-  # Rename columns
-  names(data)[names(data)=="date"] <- "DateTime"
-  names(data)[names(data)=="lc"] <- "qi"
+  # convert names agaian into Sequeria et al., 2021 fields
+  # in order to applied in SDLfilter::dupfilter()
   
+  names(data)[names(data)=="argosLC"] <- "qi"
+  names(data)[names(data)=="latitude"] <- "lat"
+  names(data)[names(data)=="longitude"] <- "lon"
+  names(data)[names(data)=="organismID"]  <- "id"
+  names(data)[names(data)=="time"]     <- "DateTime"
+
   
   ## Filter out values above speed threshold, considering both previous and subsequent positions
   data <- ddfilter.speed(data, vmax = vmax, method = method)
   
   ## Back transform data.frame to standar format
   
+
+  ## Back transform data.frame to standar format Sequeria et al., 2021
   # Rename columns
-  names(data)[names(data)=="DateTime"] <- "date"
-  names(data)[names(data)=="qi"] <- "lc"
+  names(data)[names(data) == "qi"] <- "argosLC"
+  names(data)[names(data) == "lat"] <- "latitude"
+  names(data)[names(data) == "lon"]  <- "longitude"
+  names(data)[names(data) == "id"]   <- "organismID"
+  names(data)[names(data) == "DateTime"]     <- "time"
   
   # Standardize Location clasess
-  data$lc[data$lc == -1] <- "A" 
-  data$lc[data$lc == -2] <- "B"
-  data$lc[data$lc == 4] <- "G" 
+  data$argosLC[data$argosLC == -1] <- "A" 
+  data$argosLC[data$argosLC == -2] <- "B"
+  data$argosLC[data$argosLC == 4] <- "G" 
   
   ## Prepare output
   return(data)
@@ -165,16 +196,22 @@ filter_track  <- function (data, vmax = 10.8, step.time = 5/60, step.dist = 0.00
   ## Convert standard format to SDLfilter
   
   # Standardize Location clasess
-  data$lc <- as.character(data$lc)
-  data$lc[data$lc == "A"] <- -1 
-  data$lc[data$lc == "B"] <- -2
-  data$lc[data$lc == "Z"] <- -9
-  data$lc[data$lc == "G"] <- 4
-  data$lc <- as.numeric(data$lc)
+  data$argosLC <- as.character(data$argosLC)
+  data$argosLC[data$argosLC == "A"] <- -1 
+  data$argosLC[data$argosLC == "B"] <- -2
+  data$argosLC[data$argosLC == "Z"] <- -9
+  data$argosLC[data$argosLC == "G"] <- 4
+  data$argosLC <- as.numeric(data$argosLC)
   
-  # Rename columns
-  names(data)[names(data)=="date"] <- "DateTime"
-  names(data)[names(data)=="lc"] <- "qi"
+
+  # Rename columns from Sequeria et al., 2021 to specific names
+  # in order to applied in SDLfilter::dupfilter()
+  
+  names(data)[names(data)=="argosLC"] <- "qi"
+  names(data)[names(data)=="latitude"] <- "lat"
+  names(data)[names(data)=="longitude"] <- "lon"
+  names(data)[names(data)=="organismID"]  <- "id"
+  names(data)[names(data)=="time"]     <- "DateTime"
   
   ### Remove duplicated locations, based on both time and space criteria
   data_dup <- dupfilter(data.frame(data), step.time=step.time, step.dist=step.dist, conditional = FALSE)
@@ -194,14 +231,18 @@ filter_track  <- function (data, vmax = 10.8, step.time = 5/60, step.dist = 0.00
 
   ## Back transform data.frame to standar format
   
-  # Rename columns
-  names(data)[names(data)=="DateTime"] <- "date"
-  names(data)[names(data)=="qi"] <- "lc"
+  # convert names agaian into Sequeria et al., 2021 fields
+  # in order to applied in SDLfilter::dupfilter()
+  names(data)[names(data) == "qi"] <- "argosLC"
+  names(data)[names(data) == "lat"] <- "latitude"
+  names(data)[names(data) == "lon"]  <- "longitude"
+  names(data)[names(data) == "id"]   <- "organismID"
+  names(data)[names(data) == "DateTime"]     <- "time"
   
   # Standardize Location clasess
-  data$lc[data$lc == -1] <- "A" 
-  data$lc[data$lc == -2] <- "B"
-  data$lc[data$lc == 4] <- "G" 
+  data$argosLC[data$argosLC == -1] <- "A" 
+  data$argosLC[data$argosLC == -2] <- "B"
+  data$argosLC[data$argosLC == 4] <- "G" 
   
   ## Create a data.frame with processing report data
   proc <- data.frame(id = data$id[1],
@@ -278,23 +319,24 @@ summarizeSim <- function(data){
 #------------------------------------------------------------------------------------
 # summarizeTrips        Sumarize tracking data per trip
 #------------------------------------------------------------------------------------
-summarizeTrips <- function(data){
-  # data is a data.frame with all tracking data per species
-  
-  library(geosphere)
-  
+summarizeTrips <- function(data, id = "organismID", trip = "tripID", date ="time", lon = "longitude", lat = "latitude"){
   df <- data %>%
-    arrange(time) %>%  # order by date
-    group_by(organismID, trip) %>%  # select group info
-    summarize(date_deploy = first(time),
-              lon_deploy = first(longitude),
-              lat_deploy = first(latitude),
-              date_last = last(time),
-              time_interval_h = median(as.numeric(difftime(tail(time, -1), head(time, -1), units="hours"))),
-              distance_km = sum(distGeo(p1 = cbind(longitude, latitude)), na.rm=TRUE)/1000,  # segment distance
-              n_loc = n()) %>%  # get first and last observations
-    mutate(duration_h = round(difftime(date_last, date_deploy, units="hours")))  # calculate duration of the track
-  
+    # rename varaibles
+    dplyr::rename(id = `id`, trip = `trip`, date = `date`, lon = `lon`, lat = `lat`) %>%
+    # order by date
+    dplyr::arrange(date) %>%
+    # group by id and trip
+    dplyr::group_by(id, trip) %>%
+    dplyr::summarize(date_deploy = first(date),
+                     lon_deploy = first(lon),
+                     lat_deploy = first(lat),
+                     date_last = last(date),
+                     time_interval_h = median(as.numeric(difftime(tail(date, -1), head(date, -1), units="hours"))),
+                     distance_km = sum(geosphere::distGeo(p1 = cbind(lon, lat)), na.rm=TRUE)/1000,  # segment distance
+                     n_loc = n()) %>%  # get first and last observations
+    dplyr::mutate(duration_h = round(difftime(date_last, date_deploy, units="hours"))) %>%  # calculate duration of the track
+    # rename to original variables
+    dplyr::rename(`id` = id)
   return(df)
 }
 #------------------------------------------------------------------------------------

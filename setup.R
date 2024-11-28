@@ -18,8 +18,9 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", #spatial
                "ks", "mkde", "akima", # 3D spatial
-               "ggplot2", #plot
-               "animalsensor")  # tracking process tools
+               "ggplot2", "gridExtra", "grid", #plot
+               "animalsensor", "aniMotum", "argosfilter")  # tracking process tools
+
 
 
 

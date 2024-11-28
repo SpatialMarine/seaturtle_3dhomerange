@@ -13,7 +13,7 @@
 
 # Functions created by D.March / GitHub: @dmarch
 
-# Updated by J. Menéndez-Blázquez for standarization of variables names
+# Updated by J. Menéndez-Blázquez for standardization of variables names
 # following Sequeria et al., 2021
 
 
@@ -21,10 +21,19 @@
 #-----------------------------------------------------------------
 # diffTimeHisto       Time diff histo
 #-----------------------------------------------------------------
+
+#'  The diffTimeHisto function generates a histogram that shows 
+#'  the distribution of time differences between observations in a dataset.
+
+#' iffTimeHisto generates a histogram that describes the distribution 
+#' of time differences between observations in a dataset, 
+#' highlighting a specific value (e.g., 24 hours) with a red vertical line. 
+#' It is useful for analyzing temporal patterns in sequential data
+
 diffTimeHisto <- function(data, vline=24){
   
   # calculate time difference
-  data$timedif <- timedif(data$date)
+  data$timedif <- timedif(data$time)
   
   # plot
   p <- ggplot(data = data, aes(x=timedif, y = ..count..)) +
@@ -45,7 +54,7 @@ diffTimeHisto <- function(data, vline=24){
 diffTimeHistoGPS <- function(data, vline=0.08){
   
   # calculate time difference
-  data$timedif <- timedif(data$date)
+  data$timedif <- timedif(data$time)
   
   # plot
   p <- ggplot(data = data, aes(x=timedif, y = ..count..)) +
@@ -221,22 +230,20 @@ mapL1 <- function (data){
   data(countriesHigh, package = "rworldxtra", envir = environment())
   wm <- suppressMessages(fortify(countriesHigh))
   
-  ### Parse date format
-  data$time <- as.integer(data$date)
-
   ### Filter location data
   #data <- filter(data, argosfilter == "not" & onland == "FALSE")
+
   
   ### Get metadata
-  sdate <- data$date[1]
-  edate <- data$date[nrow(data)]
-  days <- round(as.numeric(difftime(edate, sdate, units="days")))
+  sdate <- min(data$time) # first date recorded
+  edate <- max(data$time) # last date recorded 
+  days <- round(as.numeric(difftime(edate, sdate, units = "days")))  # tagging time period (days)
   
   ### Define extension for plot
-  xl <- extendrange(data$lon, f = 0.5)
-  yl <- extendrange(data$lat, f = 0.5)
+  xl <- extendrange(data$longitude, f = 0.5)
+  yl <- extendrange(data$latitude, f = 0.5)
   b <- c(data$time[1], data$time[nrow(data)])
-  blab <- c(as.Date(data$date[1]), as.Date(data$date[nrow(data)]))
+  blab <- c(as.Date(data$time[1]), as.Date(data$time[nrow(data)]))
   
   ### Plot
   p <- ggplot() +
@@ -246,16 +253,16 @@ mapL1 <- function (data){
     xlab("Longitude") +
     ylab("Latitude") +
     geom_point(data = data,
-               aes_string(x = "lon", y = "lat", group = NULL, colour = "time"),
+               aes_string(x = "longitude", y = "latitude", group = NULL, colour = "time"),
                size = 2) +
     #scale_colour_gradientn(colours = terrain.colors(10)) + 
     scale_colour_gradientn(colours=rev(brewer.pal(10,"RdYlGn")),
                            breaks=b,labels=format(blab)) +
     #scale_colour_brewer() +
     geom_path(data = data,
-              aes_string(x = "lon", y = "lat", group = "id")) +
-    labs(title = paste(data$sp_code[1], "Id:", data$id[1]),
-       subtitle = paste("Start:", sdate, "End:", edate, "(", days, "days)")) 
+              aes_string(x = "longitude", y = "latitude", group = "organismID")) +
+    labs(title = paste("OrganismID:", data$organismID[1]),
+       subtitle = paste("Start:", sdate, "End:", edate, "(",days, "days)")) 
   
   return(p)
   
