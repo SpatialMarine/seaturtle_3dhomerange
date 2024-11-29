@@ -14,24 +14,26 @@ cpu <- "jmb"
 # devtools::install_github("ianjonsen/aniMotum")
 # devtools::install_github("dmarch/animalsensor")
 # remotes::install_github("jmlondon/pathroutr")
-install.packages("pathroutr", repos = "https://jmlondon.r-universe.dev", dependencies = TRUE)
+# install.packages("pathroutr", repos = "https://jmlondon.r-universe.dev", dependencies = TRUE)
 
 
 
 # Load required packages
 pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", "reshape2", "tools", # data manipulation
                "foreach", "doParallel",  # parallel computing
-               "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", "rnaturalearthhires", #spatial
+               "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
+               "rnaturalearthhires", #spatial
                "ks", "mkde", "akima", # 3D spatial
+               "diveMove", # process dive tracking data
                "ggplot2", "gridExtra", "grid", #plot
-               "animalsensor", "aniMotum", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
+               "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
 
 # packages notes:
 # · sfnetworks is required by pathroutr package
 # · nabor
 
-devtools::install_github("ianjonsen/foieGras")
-
+# for parse and format timestamps for ttdr series files and locs from Argos data
+locale <- "en_US.UTF-8"
 
 # ------------------------------------------------------------------------------
 # 1. Set main data paths ---------

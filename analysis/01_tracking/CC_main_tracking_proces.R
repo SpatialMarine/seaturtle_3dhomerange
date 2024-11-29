@@ -77,6 +77,10 @@ funs <- list.files("analysis/01_tracking/fun/", pattern = "\\.R$", full.names = 
 sapply(funs, source)
 
 
+# Set number of cores for parallel processing
+cores <- detectCores()-2
+
+
 # Load dependencies
 source("setup.R")
 source("scr/fun_track_reading.R")  # read multiple tracking data formats
@@ -106,8 +110,7 @@ paste0(main_dir,"/input/tracking/loc/loc")
 # 4. Processing workflow
 #---------------------------------------------------------------
 
-# Set number of cores for parallel processing
-cores <- detectCores()-2
+# tracking ----------------------------------------
 
 # Step 1. Pre-process data and standardize format
 # Select data for turtles with TTDR that remain within the Western Mediterranean
@@ -122,5 +125,14 @@ source("analysis/tracking/scr/filter_locs.R")
 # Uses correlated random walk state-space model from Jonsen et al. 2019 doi:10.1002/ecy.2566
 source("analysis/tracking/scr/regularize_ssm.R")
 
+
+# ttdr - Dives process -----------------------------------
+
 # Step 4. Process TTDR data
 source("analysis/tracking/scr/process_TTDR_CAR.R")
+
+# Step 5. Conver to dive
+
+
+
+

@@ -54,7 +54,7 @@ cl <- makeCluster(cores)
 registerDoParallel(cl)
 
 
-foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "stringr", "lubridate", "animalsensor")) %dopar% {  
+foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "stringr", "lubridate", "animalsensor")) %do% {  
   
   # info 
   cat("Processing tag", i,"of",length(organismIDs))
@@ -204,8 +204,6 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
 
 
 
-
-
 #---------------------------------------------------------------
 # 4. Summarize processed data
 
@@ -220,9 +218,11 @@ data_proc <- lapply(loc_files, read.csv) %>% rbindlist
 
 # summarize data per trip
 tripstats <- summarizeTrips(df)
+tripstats <- tripstats %>% rename(organismID = id,
+                                  tripID = trip)
 
 # combine track data summary and convergence status
-comb <- merge(tripstats, data_proc, by=c("organismID", "trip"))
+comb <- merge(tripstats, data_proc, by=c("organismID", "tripID"))
 
 # export table
 out_file <- paste0(output_data, "/","L2_summary_ssm.csv")

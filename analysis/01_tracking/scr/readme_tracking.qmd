@@ -5,7 +5,33 @@ format: html
 editor: visual
 ---
 
-Confidence intervals (CI) for predicted loc positions (SSM)
+#### Tracking data processing levels
+
+Locations (loc) -
+
+-   `L0` - standardized data (following Sequeira et al., 2021 fields nomenclature)
+
+-   `L1` -
+
+-   `L2`
+
+Temperature-depth recorder (`ttdr`)
+
+-   `L0` - standardized data
+
+-   `L1` - post-processing TTDR data:
+
+    -    Zero offset correction + Identification of ascent and descent phases
+
+    -   Estimation of depth and temperature errors
+
+    -   Temperature QC (regional test)
+
+    -   Interpolate locations from SSM
+
+    -    Day and night information
+
+#### Confidence intervals (CI) for predicted loc positions (SSM)
 
 Values such as `lat.025`, `lat.975,` `lon.025`, `lon.975` refer to confidence intervals (CI) ranging from 2.5% to 97.5% for the latitude coordinates (and similarly for longitude).
 

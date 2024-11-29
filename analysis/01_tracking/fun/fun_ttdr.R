@@ -223,10 +223,12 @@ diveSummary <- function(dcalib){
 #--------------------------------------------------------------------------------
 getSST <- function(data){
   # This function fixed several problems found on the initial test.
+  
   # 1) I found high temperature values for some points. This is mainly because I initially consider
   #    all dives and postdives. I have sorted this out by:
   #    a) filtering dives >10 minutes long (ie. at least 2 registers per dive).
   #    b) filtering out dives <5 m deep (use lower error estimate). shallow dives could be affected)
+  
   # 2) There were low temperature values for two reasons:
   #    a) Some postdives present without depth data. I filtered those out
   #    b) First register of postdive very similar to previous underwater register. I selected the second register per postdive. 
@@ -244,18 +246,18 @@ getSST <- function(data){
   ## Indetify second time stamp of a postdive
   sst <- data %>%
     group_by(postdive.id) %>%
-    arrange(date) %>%
+    arrange(time) %>%
     slice(2) %>%  # take the second register from the postdive
     ungroup
   
   ## Filter data
   sst <- filter(sst, postdive.id > 3,  # remove first 3 dives
                 postdive.id %in% dive10$dive.id,
-                temp_qc_rr == 1,  # select temperature data within range
+                temperature_qc1 == 1,  # select temperature data within range
                 !is.na(depth)) # select data with depth information
   
   ## Select fields
-  sst <- dplyr::select(sst, id, date, depth_adj, depth_upper_error, depth_lower_error, temperature, temp_error, temp_qc_rr)
+  sst <- dplyr::select(sst, id, time, depth_adjusted, depth_upper_error, depth_lower_error, temperature, temp_error, temperature_qc1)
   return(sst)
 }
 #--------------------------------------------------------------------------------
@@ -332,11 +334,11 @@ wc2ttdr <- function(data, locale = "English", date_deploy=NULL, tfreq = "5 min")
   require(lubridate)
   
   # Convert to POSIXct
-  data$date <- paste(data$Day, data$Time)
-  data$date <- parse_date_time(data$date, c("dmY HMS", "Ymd HMS"), locale=locale, tz="UTC")
+  data$time <- paste(data$Day, data$Time)
+  data$time <- parse_date_time(data$time, c("dmY HMS", "Ymd HMS"), locale=locale, tz="UTC")
   
   # Select data collected from the date of deployment
-  if (!is.null(date_deploy)) data <- filter(data, date >= date_deploy)
+  if (!is.null(date_deploy)) data <- filter(data, time >= date_deploy)
 
   ### Rename columns
   names(data)[names(data)=="Ptt"] <- "id"
@@ -347,15 +349,15 @@ wc2ttdr <- function(data, locale = "English", date_deploy=NULL, tfreq = "5 min")
   
   ## create a time series for the whole period with NAs
   id <- data$id[1]  # Get animal id
-  min.time <- min(data$date)  # min time stamp
-  max.time <- max(data$date)  # max time stamp
+  min.time <- min(data$time)  # min time stamp
+  max.time <- max(data$time)  # max time stamp
   ts.seq <- seq(from = min.time, to = max.time, by = tfreq)  # create complete TS at regular period of time
-  ts.seq <- data.frame(date = ts.seq)  # convert to data.frame
-  data <- merge(ts.seq, data, by="date", all.x = TRUE)  # merge data with complete sequence
+  ts.seq <- data.frame(time = ts.seq)  # convert to data.frame
+  data <- merge(ts.seq, data, by="time", all.x = TRUE)  # merge data with complete sequence
   data$id[is.na(data$id)] <- id
   
   # Reorder column names
-  data <- dplyr::select(data, id, date, depth, drange, temperature, trange)
+  data <- dplyr::select(data, id, time, depth, drange, temperature, trange)
   return(data)
 }
 #---------------------------------------------------------------------
