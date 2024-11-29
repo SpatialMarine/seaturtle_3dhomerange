@@ -13,7 +13,7 @@
 #---------------------------------------------------------------
 # 1. Set data repository
 
-input_data <- paste0(input_dir,"/tracking/ttdr/L1")
+input_data <- paste0(input_dir,"/tracking/ttdr/L2")
 output_data <- paste0(input_dir,"/tracking/dives")
 if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 
@@ -21,7 +21,7 @@ if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 #---------------------------------------------------------------
 # 2. Import data
 # read all ttdr.files
-ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L1_ttdr.csv")
+ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L2_ttdr.csv")
 
 
 #---------------------------------------------------------------
@@ -33,26 +33,16 @@ ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L1_ttdr.csv")
 
 t <- Sys.time()
 
+
 foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "diveMove")) %dopar% {
   
   # import ttdr
   data <- readTrack(ttdr_files[i])
-  organismID <- data$organismID
+  organismID <- data$organismID[i]
 
   # import dcalib files (see 04_process_ttdr.R)
-  dcalib <- readRDS(paste0(input_data,"/",organismID,"_dcalib.rds"))
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  path <- paste0(input_dir,"/tracking/ttdr/L1")
+  dcalib <- readRDS(paste0(path,"/",organismID,"_dcalib.rds"))
   
   # dive summary
   dive_sum <- diveSummary(dcalib) %>%
@@ -69,7 +59,7 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
     
     # subset TDR data during dive
     sdata <- data %>%
-      filter(date >= dive_sum$begdesc[j], date <= dive_sum$endasc[j])
+      filter(time >= dive_sum$begdesc[j], time <= dive_sum$endasc[j])
     
     # find max depth and get errors
     sel <- which(sdata$depth_adj == max(sdata$depth_adj, na.rm=T))
@@ -92,7 +82,10 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
   write.csv(df, outfile, row.names = FALSE)
 }
 
+
+Sys.time()-t
+
 stopCluster(cl)
 
-
+cat("Processing dives finished")
 

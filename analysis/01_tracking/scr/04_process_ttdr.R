@@ -234,11 +234,11 @@ for (i in 1:nrow(metadata)){
   # No extrapolation is performed. So check that timestamps in series are within time domain of loc
   ttdr <- dplyr::filter(ttdr, time >= min(loc_filt$time) & time <= max(loc_filt$time))
   
+  # linear interpolation
   # convert location data to move class
   loc_filt_move <- move(x=loc_filt$longitude, y=loc_filt$latitude, time=loc_filt$time, data=loc_filt,
                         proj=CRS("+proj=longlat +ellps=WGS84"), animal=loc_filt$organismID)
-
-  # linear interpolation
+  # interpolation
   lint <- interpolateTime(loc_filt_move, time = ttdr$time, spaceMethod = "greatcircle")
   
   # incorporate coordinates to TTDR data.frame
@@ -267,14 +267,76 @@ for (i in 1:nrow(metadata)){
 
 
 
+#---------------------------------------------------------------
+# 4. report errors in depth and temperature measure by tag
+#    clean records with no time(date) and depth records
+
+# Import all L1 ttdr (readTrack function)
+output_data <- paste0(input_dir,"/tracking/ttdr/L1")
+ttdr_files <- list.files(output_data, full.names=TRUE, pattern = "_L1_ttdr.csv")
+
+ttdr_errors <- list()
+
+for (i in 1:length(ttdr_files)) {
+  # import L1 ttdr data
+  L1 <- readTrack(ttdr_files[i])
+  organismID <- sub("_L1_ttdr.csv$", "", basename(ttdr_files[i]))
+  
+  # Number of records without time (date) info
+  time_na_count <- sum(is.na(L1$time))
+  depth_na_count <- sum(is.na(L1$depth)) 
+  temp_na_count <- sum(is.na(L1$temperature))
+  depth_temp_na_count <- sum(is.na(L1$depth) & is.na(L1$temperature))
+  # % respect total records
+  time_na_percentage <- (time_na_count*100)/nrow(L1)
+  depth_na_percentage <- (depth_na_count*100)/nrow(L1)
+  temp_na_percentage <- (temp_na_count*100)/nrow(L1)
+  depth_temp_na_percentage <- (depth_temp_na_count*100)/nrow(L1)
+  
+  # L2 ttdr process, remove records with NA in time and depth
+  L2 <- L1 %>% filter(!is.na(time))
+  L2 <- L2 %>% filter(!is.na(depth))
+                    
+  ttdr_error_organism <- data.frame(organismID = organismID,
+                                    ttdr_L1_records = nrow(L1),
+                                    ttdr_L2_records = nrow(L2),
+                                    time_na_count = time_na_count,
+                                    time_na_percentage = time_na_percentage,
+                                    depth_na_count = depth_na_count,
+                                    depth_na_percentage = depth_na_percentage,
+                                    temp_na_count = temp_na_count,
+                                    temp_na_percentage = temp_na_percentage,
+                                    depth_temp_na_count = depth_temp_na_count,
+                                    depth_temp_na_percentage = depth_temp_na_percentage)
+  
+  # append to ttdr erros 
+  ttdr_errors[[i]] <- ttdr_error_organism 
+  
+  # export save L2 ttdr files with NA records:
+  output_data <- paste0(input_dir,"/tracking/ttdr/L2")
+  if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
+  
+  ttdr_file <- paste0(output_data, "/",organismID,"_L2_ttdr.csv")
+  write.csv(L2, ttdr_file, row.names = FALSE)
+  
+}
+
+ttdr_errors <- do.call(rbind, ttdr_errors)
+
+ttdr_file <- paste0(output_data, "/","L1_summary_ttdr_errors.csv")
+write.csv(ttdr_errors, ttdr_file, row.names = FALSE)
+
+
 
 
 #---------------------------------------------------------------
-# 4. Summarize TTDR
+# 5. Summarize TTDR
 
+# metadata imported previously
 
 # Import all ttdr. readTrack
-ttdr_files <- list.files(output_data, full.names=TRUE, pattern = "_L1_ttdr.csv")
+output_data <- paste0(input_dir,"/tracking/ttdr/L2")
+ttdr_files <- list.files(output_data, full.names=TRUE, pattern = "_L2_ttdr.csv")
 data <- readTrack(ttdr_files)
 
 # Summarize TTDR data
@@ -292,19 +354,15 @@ df <- data %>%
 
 # Combine with metadata
 # fields standarized following Sequeira et al. (2021)
-db <- db %>%
+metadata <- metadata %>%
   dplyr::select(organismID, scientificName, organismSize1, organismSizeMeasurementType1, 
                 organismSex, instrumentType, instrumentModel)
 
-df <- merge(db, df, by="organismID")
-
+df <- merge(metadata, df, by="organismID")
 
 # export table
-out_file <- paste0(output_data, "/","L1_summary_ttdr.csv")
+out_file <- paste0(output_data, "/","L2_summary_ttdr.csv")
 write.csv(df, out_file, row.names = FALSE)
-
-
-
 
 
 
@@ -312,7 +370,7 @@ write.csv(df, out_file, row.names = FALSE)
 
 t - Sys.time()
 stopCluster(cl) # Stop cluster
-print("Regularization ready (fitted SSM/MPM)")
+print("Process TTDR data finished - L0, L1 and L2 processing levels")
 
 
 
