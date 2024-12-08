@@ -27,14 +27,13 @@ ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L2_ttdr.csv")
 #---------------------------------------------------------------
 # 3. Process  files
 
-# cores <- detectCores() - 2
+#  cores <- detectCores() - 2
 # cl <- makeCluster(cores)
 # registerDoParallel(cl)
 
 t <- Sys.time()
 
-
-foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "diveMove")) %dopar% {
+foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "diveMove")) %do% {
   
   # import ttdr
   data <- readTrack(ttdr_files[i])
@@ -73,7 +72,6 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
   # select variables
   df <- dplyr::select(dive_sum, dive.id, longitude, latitude, begdesc, endasc, divetim,
                       pdd, pdd_qc, maxdep, depth_upper_error, depth_lower_error, dtype, xy_error)
-  
   # add id
   df <- cbind(organismID, df)
   
@@ -84,8 +82,6 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
 
 
 Sys.time()-t
-
-stopCluster(cl)
-
 cat("Processing dives finished")
 
+stopCluster(cl)

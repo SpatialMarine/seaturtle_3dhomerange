@@ -9,8 +9,13 @@
 # z.error         Calculate the vertical error from TTDR data
 
 
+
+
+
+
+
 #--------------------------------------------------------------------------------
-# ks3d         Calculate 3D volumnes using ks package
+# ks3d         Calculate 3D volumes using ks package
 #--------------------------------------------------------------------------------
 ks3d <- function(x, y, z, multiplier=NULL, zll, voxel.zsize, voxel.xsize, voxel.ysize, extend.raster, crs){
   
@@ -84,6 +89,14 @@ ks3d <- function(x, y, z, multiplier=NULL, zll, voxel.zsize, voxel.xsize, voxel.
   
 }
 #--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
 
 
 #--------------------------------------------------------------------------------
@@ -207,6 +220,11 @@ mkde3d <- function(date, x, y, z, z.error, xy.error, t.max, integration.step, vo
 #--------------------------------------------------------------------------------
 
 
+
+
+
+
+
 #--------------------------------------------------------------------------------
 # reproject         RReproject coordinates to metric system
 #--------------------------------------------------------------------------------
@@ -228,6 +246,10 @@ reproject <- function(lon, lat, crs = "+init=epsg:3035"){
 #--------------------------------------------------------------------------------
 
 
+
+
+
+
 #--------------------------------------------------------------------------------
 # resampTTDR         Resample TTDR data at larger time intervals (6H)
 #--------------------------------------------------------------------------------
@@ -241,18 +263,18 @@ resampTTDR <- function(ttdr, ssm, timelap = 60*60*3){
   # Data frame with mean and median values of depth and z.error
   
   # Create empty data.frame
-  df <- data.frame(date = ssm$date, depth_mean = NA, z.error_mean = NA, depth_median = NA, z.error_median = NA)
+  df <- data.frame(time = ssm$time, depth_mean = NA, z.error_mean = NA, depth_median = NA, z.error_median = NA)
   
-  # Loop to calculate mean and median values for defined time lap
+  # Loop to calculate mean and median values for defined time lap for each location stimated location
   for (i in 1:nrow(df)){
     
     # print(i)
     
     # get ssm location info
-    time <- df$date[i]
+    ssm_time <- df$time[i]
     
     # filter time series data by time
-    ts <- filter(ttdr, date > time - timelap & date < time + timelap)
+    ts <- filter(ttdr, time > ssm_time - timelap & time < ssm_time + timelap)
     
     if(nrow(ts) > 0 & any(!is.na(ts$depth))){
       
@@ -271,12 +293,18 @@ resampTTDR <- function(ttdr, ssm, timelap = 60*60*3){
 #--------------------------------------------------------------------------------
 
 
+
+
+
+
+
+
 #--------------------------------------------------------------------------------
 # xy.error         Calculate the horizontal error from SSM data
 #--------------------------------------------------------------------------------
 xy.error <- function(ssm){
   # Arguments
-  # ssmDF       Data.frame from a SSM with columns: lon, lat, lon.025, lon.975, lat.0.25, lat.975
+  # ssmDF       Data.frame from a SSM with columns: lon, lat, lon.025, lon.975, lat.025, lat.975
   #
   # Description
   # Return the xy error in meters
@@ -286,10 +314,10 @@ xy.error <- function(ssm){
   library(geosphere)
   
   ## selecting the sets of points to substract:
-  west <- dplyr::select(ssm, lon.025, lat)
-  east <- dplyr::select(ssm, lon.975, lat)
-  north <- dplyr::select(ssm, lon, lat.975)
-  south <- dplyr::select(ssm, lon, lat.025)
+  west <- dplyr::select(ssm, lon.025, latitude)
+  east <- dplyr::select(ssm, lon.975, latitude)
+  north <- dplyr::select(ssm, longitude, lat.975)
+  south <- dplyr::select(ssm, longitude, lat.025)
   
   ## Calculate distance between W-E and S-N points
   londist <- distGeo(west, east)/2
@@ -298,6 +326,11 @@ xy.error <- function(ssm){
   return(er)
 }
 #--------------------------------------------------------------------------------
+
+
+
+
+
 
 
 #--------------------------------------------------------------------------------

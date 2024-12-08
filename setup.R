@@ -23,11 +23,13 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
                "rnaturalearthhires", #spatial
-               "ks", "mkde", "akima", # 3D spatial
+               "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
+               "rgl", "plot3D", "plotly", # 3D visualization
                "diveMove", # process dive tracking data
                "ggplot2", "gridExtra", "grid", #plot
                "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
 
+library(diveMove)
 # packages notes:
 # · sfnetworks is required by pathroutr package
 # · nabor

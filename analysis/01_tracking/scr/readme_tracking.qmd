@@ -21,7 +21,7 @@ Temperature-depth recorder (`ttdr`)
 
 -   `L1` - post-processing TTDR data:
 
-    -    Zero offset correction + Identification of ascent and descent phases
+    -   Zero offset correction + Identification of ascent and descent phases
 
     -   Estimation of depth and temperature errors
 
@@ -29,7 +29,9 @@ Temperature-depth recorder (`ttdr`)
 
     -   Interpolate locations from SSM
 
-    -    Day and night information
+    -   Day and night information
+
+-   `L2` - filtering and cleaning L1 TTDR files: remove records with NA in `time` and `depth` files
 
 #### Confidence intervals (CI) for predicted loc positions (SSM)
 

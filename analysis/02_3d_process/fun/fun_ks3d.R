@@ -1,20 +1,20 @@
 
 
-x = ssm$x,
-y = ssm$y,
-z = ssm$depth_mean,
-date = ssm$date,
-z.error = ssm$z.error_mean,
-xy.error = ssm$xy.error,
-t.max = 390,
-integration.step = 10,
-voxel.xsize = 10000,
-voxel.ysize = 10000,
-voxel.zsize = 10,
-extend.raster = 10000,
-zll = 0,
-crs = "+init=epsg:3035",
-contours = c(0.50, 0.95),
+x = ssm$x
+y = ssm$y
+z = ssm$depth_mean
+date = ssm$date
+z.error = ssm$z.error_mean
+xy.error = ssm$xy.error
+t.max = 390
+integration.step = 10
+voxel.xsize = 10000
+voxel.ysize = 10000
+voxel.zsize = 10
+extend.raster = 10000
+zll = 0
+crs = "+init=epsg:3035"
+contours = c(0.50, 0.95)
 rasterfile = rasterfile
 
 
@@ -26,6 +26,9 @@ voxel.ysize = 10000
 extend.raster = 100000
 contours = c(50, 95)
 multiplier = 3
+
+
+
 
 ks3d <- function(x, y, z, multiplier=NULL, zll, voxel.zsize, voxel.xsize, voxel.ysize, extend.raster, crs){
   

@@ -2,7 +2,7 @@
 # 04_process_ttdr.R
 #--------------------------------------------------------------------------------
 
-# Process pressure and temperature data from WC tags configured using time seies
+# Process pressure and temperature data from WC tags configured using time series
 
 # TTDR processing includes the following steps:
 # 1. Data standardization
@@ -44,6 +44,17 @@ if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 # same metadata used for created L2 locs files
 metadata <- read.csv(paste0(input_dir,"/tracking/loc/L1/metadataL1.csv"))
 
+# El origen para el formato de fecha de Excel es 1899-12-30, no 1900-01-01, 
+# ya que Excel tiene un pequeño error en su cálculo de fechas
+# (considera el 1900 como un año bisiesto cuando no lo es).
+
+metadata$deploymentDateTime <- as.Date(metadata$deploymentDateTime, origin="1899-12-30")
+
+
+# avoid ids with processing issues
+ids <- c(200043, 200045, 235396)
+# filter data 
+metadata <- metadata[!(metadata$organismID %in% ids), ]
 
 
 #---------------------------------------------------------------
@@ -84,7 +95,7 @@ for (i in 1:nrow(metadata)){
   # Use custom function wc2ttdr (fun_ttdr.R in tracking/fun)
   ttdr <- wc2ttdr(data, locale = locale, date_deploy = metadata$deploymentDateTime[i], tfreq = "5 min")
   
-  # export L0_ttdr.csv
+  # export raw or L0_ttdr.csv
   ttdr_file <- paste0(output_data, "/", organismID, "_L0_ttdr.csv")
   write.csv(ttdr, ttdr_file, row.names = FALSE)
   
@@ -94,7 +105,7 @@ for (i in 1:nrow(metadata)){
   
   # remove duplicates
   # priority to registers with [depth & temp] > [depth] > [temp]
-  
+
   # Detect duplicates in the time column.
   # Identify those duplicates where depth is NA.
   # Remove those specific duplicate rows while keeping the others.
@@ -103,16 +114,22 @@ for (i in 1:nrow(metadata)){
   if (any(duplicated(ttdr$time))){
     ttdr$idx <- 1:nrow(ttdr)
     dups <- ttdr %>% group_by(time) %>% filter(n()>1) %>% filter(is.na(depth))
-    ttdr <- ttdr[-dups$idx,]
-    ttdr <- dplyr::select(ttdr, -idx)
+    if (nrow(dups) > 0) {
+      ttdr <- ttdr[-dups$idx,]
+      ttdr <- dplyr::select(ttdr, -idx)
+    } else { # it could be that the first filter gives 0 obs (no NA, in duplicates)
+      dups <- ttdr %>% group_by(time) %>% filter(n()>1) %>% filter(!is.na(depth))
+      ttdr <- ttdr[-dups$idx,]
+      ttdr <- dplyr::select(ttdr, -idx)  
+    }
   }
-  
+
   # Create a TDR class ------
-  
+
   # TDR is the simplest class of objects used to represent Time-Depth recorders data in diveMove.
-  tdrdata <- createTDR(time = ttdr$time, depth = ttdr$depth,
-                       dtime = 300,  # sampling interval (in seconds)
-                       file = ttdr_file)  # path to the file
+  tdrdata <- diveMove::createTDR(time = ttdr$time, depth = ttdr$depth,
+                                 dtime = 300,  # sampling interval (in seconds)
+                                 file = ttdr_file)  # path to the file L0 ttdr
   
   ## Calibrate with Zero Offset Correction (ZOC) using filter method
   # The method consists of recursively smoothing and filtering the input time series 
@@ -120,14 +137,14 @@ for (i in 1:nrow(metadata)){
   #by filtering the time series using the first window width and quantile in the specified
   #sequences 
   
-  dcalib <-diveMove::calibrateDepth(tdrdata,
-                          wet.thr = 3610,   # (seconds) At-sea phases shorter than this threshold will be considered as trivial wet.Delete periods of wet activity that are too short to be compared with other wet periods.
-                          dive.thr = 3,     # (meters) threshold depth below which an underwater phase should be considered a dive.
-                          zoc.method ="filter",   # see Luque and Fried (2011)
-                          k = c(12, 240),   # (60 and 1200 minutes) Vector of moving window width integers to be applied sequentially.
-                          probs = c(0.5, 0.05),    # Vector of quantiles to extract at each step indicated by k (so it must be as long as k)
-                          depth.bounds = c(-5, 15),   # minimum and maximum depth to bound the search for the surface.
-                          na.rm = TRUE)
+  dcalib <- diveMove::calibrateDepth(tdrdata,
+                                    wet.thr = 3610,   # (seconds) At-sea phases shorter than this threshold will be considered as trivial wet.Delete periods of wet activity that are too short to be compared with other wet periods.
+                                    dive.thr = 3,     # (meters) threshold depth below which an underwater phase should be considered a dive.
+                                    zoc.method = "filter",   # see Luque and Fried (2011)
+                                    k = c(12, 240),   # (60 and 1200 minutes) Vector of moving window width integers to be applied sequentially.
+                                    probs = c(0.5, 0.05),    # Vector of quantiles to extract at each step indicated by k (so it must be as long as k)
+                                    depth.bounds = c(-5, 15),   # minimum and maximum depth to bound the search for the surface.
+                                    na.rm = TRUE)
 
   # save dcalib object for further analysis (export .rds)
   output_data <- paste0(input_dir,"/tracking/ttdr/L1")
@@ -368,8 +385,9 @@ write.csv(df, out_file, row.names = FALSE)
 
 # -----------------------------------------------------------------------------
 
-t - Sys.time()
-stopCluster(cl) # Stop cluster
+t - Sys.time() # 2:20 hours apróx
+
+# stopCluster(cl) # Stop cluster
 print("Process TTDR data finished - L0, L1 and L2 processing levels")
 
 

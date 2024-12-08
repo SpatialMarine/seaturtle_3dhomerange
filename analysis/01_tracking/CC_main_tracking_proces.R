@@ -70,13 +70,6 @@ tfreq <- 5 * 60  # time interval from TTDR data, in seconds
 # 2. Set data paths and import libraries
 #---------------------------------------------------------------
 
-
-# tracking functions paths
-funs <- list.files("analysis/01_tracking/fun/", pattern = "\\.R$", full.names = TRUE)
-# read .R scripts with source
-sapply(funs, source)
-
-
 # Set number of cores for parallel processing
 cores <- detectCores()-2
 

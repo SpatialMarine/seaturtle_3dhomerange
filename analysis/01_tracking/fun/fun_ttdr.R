@@ -341,26 +341,24 @@ wc2ttdr <- function(data, locale = "English", date_deploy=NULL, tfreq = "5 min")
   if (!is.null(date_deploy)) data <- filter(data, time >= date_deploy)
 
   ### Rename columns
-  names(data)[names(data)=="Ptt"] <- "id"
+  names(data)[names(data)=="Ptt"] <- "organismID"
   names(data)[names(data)=="Depth"] <- "depth"
   names(data)[names(data)=="DRange"] <- "drange"
   names(data)[names(data)=="Temperature"] <- "temperature"
   names(data)[names(data)=="TRange"] <- "trange"
   
   ## create a time series for the whole period with NAs
-  id <- data$id[1]  # Get animal id
+  organismID <- data$organismID[1]  # Get animal organismID
   min.time <- min(data$time)  # min time stamp
   max.time <- max(data$time)  # max time stamp
   ts.seq <- seq(from = min.time, to = max.time, by = tfreq)  # create complete TS at regular period of time
   ts.seq <- data.frame(time = ts.seq)  # convert to data.frame
   data <- merge(ts.seq, data, by="time", all.x = TRUE)  # merge data with complete sequence
-  data$id[is.na(data$id)] <- id
+  data$organismID[is.na(data$organismID)] <- organismID
   
   # Reorder column names
-  data <- dplyr::select(data, id, time, depth, drange, temperature, trange)
+  data <- dplyr::select(data, organismID, time, depth, drange, temperature, trange)
   return(data)
 }
 #---------------------------------------------------------------------
-
-
 
