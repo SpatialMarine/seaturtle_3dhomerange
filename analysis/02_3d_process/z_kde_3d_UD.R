@@ -30,11 +30,11 @@ library(ks)
 
 # Use L1 for ttdr files and L2 locs files (postprocessed tracking data)
 # or L2 ttdr.........
-ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L2"), full.names = TRUE, pattern = "L2_ttdr.csv")
+ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L1"), full.names = TRUE, pattern = "L1_ttdr.csv")
 locs_files <- list.files(paste0(main_dir,"/input/tracking/loc/L2"), full.names = TRUE, pattern = "L2_loc.csv")
 
 # extract ids for ptt from ttdr processed files (individual for sea-turtles)
-ptts <- sub("_L2_ttdr\\.csv$", "", basename(ttdr_files))
+ptts <- sub("_L1_ttdr\\.csv$", "", basename(ttdr_files))
 
 # set output dir
 output_data <- paste0(output_dir,"/","01_kde_3d")
@@ -65,7 +65,7 @@ gridsize = c(50)
 # select ppt for processs... for loop 
 ptt <- ptts[7]
 
-
+ppt <- 34321
 
 
 
@@ -110,9 +110,13 @@ if (ssm$organismID[1] == ttdr$organismID[1]) {
 ttdr$z.error <- z.error(depth.upper = ttdr$depth_upper_error, depth.lower = ttdr$depth_lower_error)
 
 # Calculate horizontal error from SSM data
-# ssm$xy.error <- xy.error(ssm)
+# erros in meters, see previously scripts
+ssm$xy.error <- xy.error(ssm)
 
-# POTENTIAL ERROR WITH Y.SE AND X.SE FROM L2 LOCS PROCSS fit_ssm()
+
+
+
+
 
 
 
@@ -138,7 +142,7 @@ ssm <- merge(ssm, resamp, by="time")
 
 # 2) re project to metric system -------------------------------------------------
 # use planar proyection for europe
-xy <- reproject(ssm$longitude, ssm$latitud, crs = "+init=epsg:3035")
+xy <- reproject(ssm$longitude, ssm$latitude, crs = "+init=epsg:3035")
 xy <- xy[,-3] # remove logi column
 
 # remove previously X and Y column from ssm file (L2)
@@ -158,16 +162,6 @@ ssm <- dplyr::filter(ssm, !is.na(depth_mean))
 
 
 
-# Simulates or generate pseudo 3D position to take into account the horizontal and vertical error
-# Create location from error position at the same timestamp that the 
-# State Space Model position
-
-
-# as a result generated position close to the original one that it will be taken into account in the kde 3 analysis
-# for each position will be 6 position more: 
-# - 2 z axys
-# - 2 x axys
-# - 2 y axys
 
 
 
@@ -175,6 +169,10 @@ ssm <- dplyr::filter(ssm, !is.na(depth_mean))
 
 
 
+
+
+
+# use coordinates en Mecator proyection (x) from SSM
 
 x = ssm$x
 y = ssm$y

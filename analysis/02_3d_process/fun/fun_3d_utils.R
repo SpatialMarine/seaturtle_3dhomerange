@@ -246,10 +246,6 @@ reproject <- function(lon, lat, crs = "+init=epsg:3035"){
 #--------------------------------------------------------------------------------
 
 
-
-
-
-
 #--------------------------------------------------------------------------------
 # resampTTDR         Resample TTDR data at larger time intervals (6H)
 #--------------------------------------------------------------------------------
@@ -320,6 +316,7 @@ xy.error <- function(ssm){
   south <- dplyr::select(ssm, longitude, lat.025)
   
   ## Calculate distance between W-E and S-N points
+  # distence in meters (m)
   londist <- distGeo(west, east)/2
   latdist <- distGeo(south, north)/2
   er <-  rowMeans(cbind(londist, latdist), na.rm=T)

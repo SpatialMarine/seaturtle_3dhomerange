@@ -22,9 +22,9 @@ cpu <- "jmb"
 pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", "reshape2", "tools", # data manipulation
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
-               "rnaturalearthhires", #spatial
+               "rnaturalearthhires", "maptools", "suntools", "raster", #spatial
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
-               "rgl", "plot3D", "plotly", # 3D visualization
+               "rgl", "plot3D", "plotly","plot3Drgl", # 3D visualization
                "diveMove", # process dive tracking data
                "ggplot2", "gridExtra", "grid", #plot
                "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools

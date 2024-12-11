@@ -7,11 +7,17 @@
 
 load("./data/kde_list.rda")
 
+# use load only, don't assign it to an object
+
+
+plot(density, display="rgl")
+
+
 
 
 
 # 3d plot (more information in ks documentation)
-plot(density, display="plot3D", cont=c(50,95),colors=c("purple","green"),drawpoints=TRUE,
+plot(density, display="plot3D", cont=c(50,95),colors=c("blue","white"),drawpoints=TRUE,
      xlab="easting (m)", ylab="northing (m)", zlab="depth (m)",size=2, ptcol="black")
 
 
@@ -33,3 +39,29 @@ writeRaster(raster_brick, filename = "path_to_save_your_netCDF_file/density.nc",
 # load export raster brick
 
 plot(rbrick)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+density_1 <- density
+density_2 <- density
+
+# for interactive plot
+plot(density_1, display="rgl")
+plot(density_2, display="rgl", add = TRUE)
+
+

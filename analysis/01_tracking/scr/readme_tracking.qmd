@@ -7,13 +7,17 @@ editor: visual
 
 #### Tracking data processing levels
 
-Locations (loc) -
+*From locations and temperature-deprth records loggers*
+
+Locations (l`oc`)
 
 -   `L0` - standardized data (following Sequeira et al., 2021 fields nomenclature)
 
 -   `L1` -
 
 -   `L2`
+
+-   `L3` - Pre processed L2 files in order to conduct 3D analysis (calculate position errors)
 
 Temperature-depth recorder (`ttdr`)
 
@@ -33,6 +37,8 @@ Temperature-depth recorder (`ttdr`)
 
 -   `L2` - filtering and cleaning L1 TTDR files: remove records with NA in `time` and `depth` files
 
+-   `L3` - pre-processing **L1\*** for adding night/day position (as well as dusk time).
+
 #### Confidence intervals (CI) for predicted loc positions (SSM)
 
 Values such as `lat.025`, `lat.975,` `lon.025`, `lon.975` refer to confidence intervals (CI) ranging from 2.5% to 97.5% for the latitude coordinates (and similarly for longitude).
@@ -47,3 +53,5 @@ Add after regularize position in State Space Models (03_regularize_ssm.R)
 | 90%              | 1.645            |
 | 95%              | 1.96             |
 | 99%              | 2.576            |
+
+Using `aniMotum` R package, after applied the State Space Model (SSM), the output data provided contains a `x` and `y` fields name, which correspond to Mercator proyectos coordinates (*see package documentation for detail information*). Due, `x.se` and `y.se` correspond to location measures errors in meters.
