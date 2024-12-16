@@ -1,52 +1,59 @@
-#------------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------------------
+# Script 3 Jess ---------------------------------------------------------------
+
+#------------------------------------------------------------------------------------------------------------------------------##
 ## 3D Habitat Use of Loggerhead Turtles
+## 2021
+## By: Jessica Ruff and David March
+##------------------------------------------------------------------------------------------------------------------------------##
 
-## Created by Jessica Ruff and David March (2021)
+##------------------------------------------------------------------------------------------------------------------------------##
+## 3. Calculate 3D mkde
+##------------------------------------------------------------------------------------------------------------------------------##
 
-# Update package and standarized field names following Sequeria et al., 2021
-# by Javier Menéndez-Blázquez | @jmenblaz
+# -----------------------------------------------------------------------------------------
+# Script 3 Jess ---------------------------------------------------------------
 
-# 03. Calculate 3D mkde
-#------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------##
+## 3D Habitat Use of Loggerhead Turtles
+## 2021
+## By: Jessica Ruff and David March
+##------------------------------------------------------------------------------------------------------------------------------##
 
+##------------------------------------------------------------------------------------------------------------------------------##
+## 3. Calculate 3D mkde
+##------------------------------------------------------------------------------------------------------------------------------##
+
+# Load libraries
+library(mkde)
+library(raster)
+
+
+##------------------------------------------------------------------------------------------------------------------------------##
 # Calculate 3d mkde steps:
-
 # -- initializeMovementData
 # -- initializeMKDE3D
 # -- initializeDensity
 # -- computeContourValues
 # -- computeSizeMKDE
+##------------------------------------------------------------------------------------------------------------------------------##
 
-# ----------------------------------------------------------------------------
+## Add variables to include in parameter table
+## Note: column names are different for z error in ttdr vs. ssm
+mean.xy.error <- mean(ttdr$xy.error)
+mean.z.error <- mean(ttdr$z.error)
+ttdr$depth_adjusted <- as.numeric(ttdr$depth_adjusted) # convert to numeric
+avgdepth <- mean(ttdr$depth_adjusted, na.rm = T) 
+ttdr$yday <- yday(ttdr$time) # numer of day for a year
+days.tracked <- length(unique(ttdr$yday)) 
 
-# 0) Load libraries -----
-library(mkde)
-library(raster)
-
-source("setup.R")
-source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d process
-
-
-# 1) list ttdr L3 files
-ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names = TRUE, pattern = "L3_ttdr.csv")
-
+# ptt <- ttdr$ptt[1] # already selected
 
 
-# ------------------------------------------------------------------------------
-# 2) process 3D Kernel Density Stimation (3d kde) using mkde package from animal movement
+#--------------------------------------------------------------------------------
 # mkde3d         Calculate 3D volumnes using mkde package
-
-#' commons inputs @params for mkde::functions()
-
-t.max = 250
-integration.step = 5
-voxel.xsize = 10000
-voxel.ysize = 10000
-voxel.zsize = 10
-extend.raster = 10000
-zll = 0
-crs = "+init=epsg:3035"
-contours = c(0.50, 0.75, 0.95)
+#--------------------------------------------------------------------------------
 
 # date          Time stamps in POSIXct format
 # x
@@ -65,78 +72,42 @@ contours = c(0.50, 0.75, 0.95)
 # crs
 # contours
 
+## mkde package functions inputs:
+
+x = ttdr$x
+y = ttdr$y
+z = ttdr$depth_adjusted
+date = ttdr$time
+z_error = ttdr$z.error  ## changed to avoid overwriting function name
+xy_error = ttdr$xy.error  ##changed to avoid overwriting function name
+t.max = 250
+integration.step = 5
+voxel.xsize = 10000
+voxel.ysize = 10000
+voxel.zsize = 10
+extend.raster = 10000
+zll = 0
+crs = "+init=epsg:3035"
+contours = c(0.50, 0.75, 0.95)
 
 
-# t <- Sys.time()
-# 
-# cores <- detectCores() - 2
-# cl <- makeCluster(cores)
-# registerDoParallel(cl)
-# 
-# getDoParWorkers() # backend information
+#---------------------------------------
+# Initialize a movement data list
 
+# -- initializeMovementData
+#---------------------------------------
 
+# Location error variance in the xy dimension
+sig2obs <- xy_error^2  # name changed to avoid overwriting function name
+sig2obs.z <- z_error^2  # name changed to avoid overwriting function name
 
-for (i in 1:length(ttdr_files)) { }
+# Convert time stamps to elapsed minutes from first time
+time <- as.numeric(difftime(date, date[1], units="mins")) 
 
-  ttdr <- ttdr_files[i]
-  # extract organismID from L3_ttdr fiel name
-  organismID <- sub("_L3_ttdr\\.csv$", "", basename(ttdr))
-  
-  # info 
-  cat("Processing individual:", i,"/",length(ttdr_files))
-  cat(" · organismID:", organismID, "\n")
-
-  # import locs and ttdr data for this organismID or ptt ----------------------
-  ttdr <- paste0(main_dir,"/input/tracking/ttdr/L3/",organismID,"_L3_ttdr.csv")
-  ttdr <- read.csv(ttdr, dec=",", head=TRUE)
-  # parse / format time date for ttdr data  and convert numeric fields:
-  ttdr$time <- lubridate::parse_date_time(ttdr$time, "Ymd HMS")
-  ttdr <- ttdr |> mutate(across(c(latitude, longitude, x, y,
-                                  depth_upper_error, depth_lower_error, 
-                                  depth, depth_adjusted, 
-                                  drange, 
-                                  xy.error, z.error), as.numeric))
-
-  
-  
-
-  
-  ##  variables to include in results parameter table --------------------------
-  # Note: column names are different for z error in ttdr vs. ssm
-  # general information about the diving data
-  mean.xy.error <- mean(ttdr$xy.error)
-  mean.z.error <- mean(ttdr$z.error)
-  ttdr$depth_adjusted <- as.numeric(ttdr$depth_adjusted) # convert to numeric
-  avgdepth <- mean(ttdr$depth_adjusted, na.rm = T) 
-  ttdr$yday <- yday(ttdr$time) # numer of day for a year
-  days.tracked <- length(unique(ttdr$yday)) 
-  
-  
-  #' specific inputs @params for mkde::functions() -----------------------------
-  x = ttdr$x
-  y = ttdr$y
-  z = ttdr$depth_adjusted
-  date = ttdr$time
-  z_error = ttdr$z.error  ## changed to avoid overwriting function name
-  xy_error = ttdr$xy.error  ##changed to avoid overwriting function name
-
-
-  
-  # mkde 3D kernel density stimation process  ----------------------------------
-  # 1) Initialize a movement data list initializeMovementData
-
-  # Location error variance in the xy dimension
-  sig2obs <- xy_error^2  # name changed to avoid overwriting function name
-  sig2obs.z <- z_error^2  # name changed to avoid overwriting function name
-  
-  # Convert time stamps to elapsed minutes from first time
-  time <- as.numeric(difftime(date, date[1], units="mins")) 
-  
-  # Set up movement data
-  # warning message is generated when a vector is used for the z dimension error, but it still works
-  mv.dat <- mkde::initializeMovementData(t.obs = time, x.obs = x, y.obs = y, z.obs = z,
-                                         sig2obs= sig2obs, sig2obs.z = sig2obs.z, t.max = t.max)
+# Set up movement data
+# warning message is generated when a vector is used for the z dimension error, but it still works
+mv.dat <- initializeMovementData(t.obs = time, x.obs = x, y.obs = y, z.obs = z,
+                                 sig2obs= sig2obs, sig2obs.z = sig2obs.z, t.max = t.max)
 
 #---------------------------------------------------------
 # Define the spatial extent and resolution of a 3D MKDE
@@ -200,7 +171,7 @@ use.obs <- sum(mv.dat$use.obs == TRUE)  # Used observations for the mkde
 # Create data frame to store results
 #---------------------------------------------------------
 
-kde_3d_res <- data.frame(organismID = organismID,
+kde_3d_res <- data.frame(ptt,
                          volume.50 = res$volume[res$prob == 0.50],
                          volume.75 = res$volume[res$prob == 0.75],
                          volume.95 = res$volume[res$prob == 0.95],
@@ -231,20 +202,20 @@ kde_3d_res <- data.frame(organismID = organismID,
 output_data <- paste0(output_dir,"/","01_kde_3d")
 if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 
-# create output folder for ptt or organismID
-kde_folder <- paste0(output_data,"/",organismID)
+# create output folder for ptt
+kde_folder <- paste0(output_data,"/",ptt)
 if(!dir.exists(kde_folder)) dir.create(kde_folder, recursive = TRUE)
 
 # export files as .rdata and csv format
-mkdeobjfile <- paste0(kde_folder,"/",organismID,"_3dmkde_obj.rdata")
-finalttdrfile <- paste0(kde_folder,"/",organismID,"_3d_ttdr.rdata")
-resfile <- paste0(kde_folder,"/",organismID,"_3d_res.rdata")
+mkdeobjfile <- paste0(kde_folder,"/",ptt,"_3dmkde_obj.rdata")
+finalttdrfile <- paste0(kde_folder,"/",ptt,"_3d_ttdr.rdata")
+resfile <- paste0(kde_folder,"/",ptt,"_3d_res.rdata")
 
 
 save(mkde.obj, file = mkdeobjfile)
 save(ttdr, file = finalttdrfile)
 save(kde_3d_res, file = resfile)
-write.csv(kde_3d_res, paste0(kde_folder,"/",organismID,"_3d_res",".csv"), row.names = TRUE)
+write.csv(kde_3d_res, paste0(kde_folder,"/",ptt,"_3d_res",".csv"), row.names = TRUE)
 
 
 # append to global results

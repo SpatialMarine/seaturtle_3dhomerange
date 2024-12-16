@@ -37,28 +37,42 @@ daynight <- function (time, sunrise, sunset){
 # Use L3 level (see 01_3d_pre_process.R)
 
 ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names = TRUE, pattern = "L3_ttdr.csv")
-organismIDs <- sub("_L3_ttdr\\.csv$", "", basename(ttdr_files))
 
 
-# 2) obtain day, night, sunrise, sunset, dawn and dusk information
+# 2) process 3D kde
 
-t <- Sys.time()
+# t <- Sys.time()
+# 
+# cores <- detectCores() - 2
+# cl <- makeCluster(cores)
+# registerDoParallel(cl)
+# 
+# getDoParWorkers() # backend information
 
-cores <- detectCores() - 2
-cl <- makeCluster(cores)
-registerDoParallel(cl)
-
-getDoParWorkers() # backend information
 
 # pararell processing
+# foreach(ttdr = ttdr_files, .packages=c("dplyr", "raster", "suntools", "lubridate")) %dopar% {  
 
-foreach(ttdr = ttdr_files, .packages=c("dplyr", "raster", "suntools", "lubridate")) %dopar% {  
 
+
+for (i in 1:length(ttdr_files)) { }
+  
+  ttdr <- ttdr_files[i]
   # extract organismID from L3_ttdr fiel name
   organismID <- sub("_L3_ttdr\\.csv$", "", basename(ttdr))
   
+  # info 
+  cat("Processing individual:", i,"/",length(ttdr_files))
+  cat("\n")
+  # organism ID
+  cat(" · organismID:", organismID)
+  cat("\n")
+  cat("\n")
+  
+  
+  
   # read data
-  data <- read.csv(ttdr, dec=",", head=TRUE)
+  data <- read.csv(t, dec=",", head=TRUE)
   # parse / format time date for ttdr data and conver to numeric
   data$time <- lubridate::parse_date_time(data$time, "Ymd HMS")
   data <- data |> mutate(across(c(depth_upper_error, depth_lower_error, depth, drange), as.numeric))

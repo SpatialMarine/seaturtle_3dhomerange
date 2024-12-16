@@ -38,7 +38,7 @@ ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L1"), full.names 
 locs_files <- list.files(paste0(main_dir,"/input/tracking/loc/L2"), full.names = TRUE, pattern = "L2_loc.csv")
 
 # extract ids for ptt from ttdr processed files (individual for sea-turtles)
-ptts <- sub("_L1_ttdr\\.csv$", "", basename(ttdr_files))
+ptts <- sub("_L1_ttdr//.csv$", "", basename(ttdr_files))
 
 
 
@@ -87,9 +87,9 @@ ssm <- ssm |> mutate(across(c(longitude, latitude, lon.025, lon.975, lat.025, la
 
 
 
+str(night)
 
-
-
+load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3d_ttdr_night.rdata")
 
 
 # ------------------------------------------------------------------------------------------------------
@@ -165,7 +165,7 @@ data$sunrise <- suntools::sunriset(crds=cbind(data$longitude, data$latitude), da
 data$sunset <- suntools::sunriset(crds=cbind(data$longitude, data$latitude), dateTime=data$time, direction=c("sunset"), POSIXct.out=TRUE)$time
 data$dawn <- suntools::crepuscule(crds=cbind(data$longitude, data$latitude), dateTime=data$time, solarDep=12, direction="dawn", POSIXct.out=TRUE)$time  # nautical(12), astronomic(18), civil(6)
 data$dusk <- suntools::crepuscule(crds=cbind(data$longitude, data$latitude), dateTime=data$time, solarDep=12, direction="dusk", POSIXct.out=TRUE)$time  # nautical(12), astronomic(18), civil(6)
-data$moon  <- suntools::mo
+
 
 ## Derive day/night
 time<-data$time[1]
@@ -772,7 +772,12 @@ write.csv(newday3d, paste0(kde_folder,"/",ptt,"_3d_res_day",".csv"), row.names =
 
 
 
+load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3d_ttdr_night.rdata")
 
+
+str(night)
+
+night$depth_adjusted <- as.numeric(night$depth_adjusted)
 ##------------------------------------------------------------------------------------------------------------------------------##
 ##   ##NIGHT:
 ##------------------------------------------------------------------------------------------------------------------------------##
@@ -782,7 +787,7 @@ write.csv(newday3d, paste0(kde_folder,"/",ptt,"_3d_res_day",".csv"), row.names =
 
 x = night$x
 y = night$y
-z = night$depth_adjusted
+z = as.numeric(night$depth_adjusted)
 date = night$time
 z_error = night$z.error ## changed to not overwrite function
 xy_error = night$xy.error  ## changed to not overwrite function
@@ -811,6 +816,86 @@ time <- as.numeric(difftime(date, date[1], units="mins"))
 # warning message is generated when a vector is used for the z dimension error, but it still works
 mv.dat <- initializeMovementData(t.obs = time, x.obs = x, y.obs = y, z.obs = z,
                                  sig2obs= sig2obs, sig2obs.z = sig2obs.z, t.max = t.max)
+
+library(mkde)
+library(raster)
+library(sp)
+
+
+
+# problem with is.na condition in th function ----------------------
+
+initializeMovementData <- function(t.obs, x.obs, y.obs, z.obs=NULL, 
+                                   sig2obs=0.0, sig2obs.z=NA, t.max=max(diff(t.obs), na.rm=TRUE)) {
+  # CHECK LENGTHS
+  if (is.null(z.obs)) {
+    dimension = 2
+  } else {
+    dimension = 3
+  }
+  
+  n <- length(t.obs)
+  a.obs <- rep(NA, n)
+  
+  # Verificación de sig2obs
+  if (length(sig2obs) == 1) {
+    sig2obs.vec <- rep(sig2obs, n)
+  } else if (length(sig2obs) == n) {
+    sig2obs.vec <- sig2obs
+  } else {
+    stop("The length of sig2obs is not correct.")
+  }
+  
+  # Verificación de sig2obs.z
+  if (all(is.na(sig2obs.z))) {  # Se usa all() para evitar el error
+    if (length(sig2obs) == 1) {
+      sig2obs.z.vec <- rep(sig2obs, n)
+    } else if (length(sig2obs) == n) {
+      sig2obs.z.vec <- sig2obs
+    } else {
+      stop("The length of sig2obs is not correct.")
+    }
+  } else {
+    if (length(sig2obs.z) == 1) {
+      sig2obs.z.vec <- rep(sig2obs.z, n)
+    } else if (length(sig2obs.z) == n) {
+      sig2obs.z.vec <- sig2obs.z
+    } else {
+      stop("The length of sig2obs.z is not correct.")
+    }
+  }
+  
+  # Tiempo máximo entre observaciones
+  too.much.time <- c((diff(t.obs) > t.max), TRUE)
+  
+  # Construcción de la lista de datos de movimiento
+  move.dat <- list(
+    dimension = dimension, 
+    t.obs = t.obs, 
+    x.obs = x.obs,
+    y.obs = y.obs, 
+    z.obs = z.obs, 
+    a.obs = a.obs,
+    t.max = t.max,
+    sig2xy = rep(NA, n-1), 
+    sig2z = rep(NA, n-1),
+    sig2obs = sig2obs.vec, 
+    sig2obs.z = sig2obs.z.vec, 
+    n.excl.time = too.much.time,       # step-based (pre-computed)
+    n.excl.bound = rep(FALSE, n),      # location-based
+    n.excl.nomove = rep(FALSE, n),     # step-based
+    use.obs = (!too.much.time)         # overall indicator for each step
+  )
+  
+  return(move.dat)
+}
+
+
+
+
+
+
+
 
 #---------------------------------------------------------
 # Define the spatial extent and resolution of a 3D MKDE

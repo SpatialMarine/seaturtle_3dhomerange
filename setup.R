@@ -19,7 +19,8 @@ cpu <- "jmb"
 
 
 # Load required packages
-pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", "reshape2", "tools", # data manipulation
+pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", 
+               "reshape2", "tools", "purrr", # data manipulation
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
                "rnaturalearthhires", "maptools", "suntools", "raster", #spatial

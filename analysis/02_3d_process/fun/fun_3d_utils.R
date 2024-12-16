@@ -8,6 +8,11 @@
 # xy.error         Calculate the horizontal error from SSM data
 # z.error         Calculate the vertical error from TTDR data
 
+# # initializeMovementData modify from "mkde" R package. Note: this function it
+#                          wasn't works properlly (2024). There was and error in 
+#                          the logic evaluation of NA. Modified to correct this.
+#                          After the modification, the functions works well and
+#                          provides same results than those obtained by Jess Ruff (2021)
 
 
 
@@ -345,3 +350,83 @@ z.error <- function(depth.upper, depth.lower){
   return(er)
 }
 #--------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+#--------------------------------------------------------------------------------
+# initializeMovementData         From mkde R package. Create a mov.data object 
+                                 # for further analisys
+#--------------------------------------------------------------------------------
+
+# original error in (is.na(sig2obs.z))
+
+
+# Sets up the list with movement data
+initializeMovementData <- function(t.obs, x.obs, y.obs, z.obs=NULL, 
+                                   sig2obs=0.0, sig2obs.z=NA, t.max=max(diff(t.obs), na.rm=TRUE)) {
+  # CHECK LENGTHS
+  if (is.null(z.obs)) {
+    dimension=2
+  } else {
+    dimension=3
+  }
+  n <- length(t.obs)
+  a.obs <- rep(NA, n)
+  if (length(sig2obs) == 1) {
+    sig2obs.vec <- rep(sig2obs, n)
+  } else if (length(sig2obs) == n) {
+    sig2obs.vec <- sig2obs
+  } else {
+    stop("The length of sig2obs is not correct.")
+  }
+  if (all(is.na(sig2obs.z))) {
+    if (length(sig2obs) == 1) {
+      sig2obs.z.vec <- rep(sig2obs, n)
+    } else if (length(sig2obs) == n) {
+      sig2obs.z.vec <- sig2obs
+    } else {
+      stop("The length of sig2obs is not correct.")
+    }
+  } else {
+    if (length(sig2obs) == 1) {
+      sig2obs.z.vec <- rep(sig2obs.z, n)
+    } else if (length(sig2obs) == n) {
+      sig2obs.z.vec <- sig2obs.z
+    } else {
+      stop("The length of sig2obs is not correct.")
+    }
+  }
+  too.much.time <- c((diff(t.obs) > t.max), TRUE)
+  move.dat <- list(dimension=dimension, 
+                   t.obs=t.obs, 
+                   x.obs=x.obs,
+                   y.obs=y.obs, 
+                   z.obs=z.obs, 
+                   a.obs=a.obs,
+                   t.max=t.max,
+                   sig2xy=rep(NA, n-1), 
+                   sig2z=rep(NA, n-1),
+                   sig2obs=sig2obs.vec, 
+                   sig2obs.z=sig2obs.z.vec, 
+                   n.excl.time=too.much.time,       # step-based (pre-computed)
+                   n.excl.bound=rep(FALSE, n),      # location-based
+                   n.excl.nomove=rep(FALSE, n),     # step-based
+                   use.obs=(!too.much.time)         # overall indicator for each step
+  )
+  return(move.dat)
+}
+
+
+
+
+
+
+
+
+
+
