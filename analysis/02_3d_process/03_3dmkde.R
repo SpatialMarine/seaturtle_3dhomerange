@@ -253,7 +253,8 @@ Sys.time() - t
 
 
 
-# 3) Combine results and export    --------------------------------------------
+# -----------------------------------------------------------------------------
+# 3) Combine results and export              ---------------------------------
 
 # list results for all individuals
 files <- list.files(output_data, pattern = "_3d_res.csv", recursive = TRUE, full.names = TRUE)
