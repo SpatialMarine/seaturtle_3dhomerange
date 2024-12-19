@@ -45,7 +45,15 @@ library(ncdf4)
 
 # Assign thresholds for plotting:
 
+organismID <- 181762
+file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
+load(file)
+
+
 load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3dmkde_obj_night.rdata")
+
+
+load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3dmkde_obj.rdata")
 
 #res
 vol95 <- res[3,2]
@@ -54,7 +62,7 @@ vol50 <- res[1,2]
 # Get array from mkde object
 x=mkde.obj$x
 y=mkde.obj$y
-z=mkde.obj$z*(-1)
+z=mkde.obj$z*(-1) # change depth to negative for plotting
 F=mkde.obj$d
 
 ##------------------------------------------------------------------------------------------------------------------------------##

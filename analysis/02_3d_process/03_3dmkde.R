@@ -268,4 +268,33 @@ write.csv(df, paste0(output_data,"/kde_3d_res.csv"), row.names = TRUE)
   
 
 
+# -----------------------------------------------------------------------------
+# 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
+
+# list results for all individuals
+files <- list.files(output_data, pattern = "_3dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
+
+for (f in files) {
+  # load 3D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_3dmkde_obj\\.rdata$", "", basename(f))
+  
+  # output ascii file
+  ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_ascii.txt")
+  writeToGRASS(mkde.obj, ascii_file)
+  
+  #output VTK file
+  vtk_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj.vtk")
+  writeToVTK(mkde.obj, vtk_file,
+             description=paste0(organismID," 3D MKDE"))
+}
+
+
+
+
+
+
+
+
 
