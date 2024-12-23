@@ -58,7 +58,7 @@ contours = c(0.50, 0.75, 0.95)
 
 t <- Sys.time()
 
-for (i in 1:length(ttdr_files)) {}
+for (i in 1:length(ttdr_files)) {
   
   ttdr <- ttdr_files[i]
   # extract organismID from L3_ttdr fiel name
@@ -170,22 +170,6 @@ for (i in 1:length(ttdr_files)) {}
                            use.obs.mkde = use.obs)
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
   ##------------------------------------------------------------------------------------------------------------------------------##
   # To save objects for further plotting / analysis
   ##------------------------------------------------------------------------------------------------------------------------------##
@@ -196,57 +180,71 @@ for (i in 1:length(ttdr_files)) {}
   if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
   
   # create output folder for ptt
-  kde_folder <- paste0(output_data,"/",ptt)
-  if(!dir.exists(kde_folder)) dir.create(kde_folder, recursive = TRUE)
-  
-  # export files as .rdata and csv format
-  mkdeobjfile <- paste0(kde_folder,"/",ptt,"_2dmkde_obj.rdata")
-  resfile <- paste0(kde_folder,"/",ptt,"_2d_res.rdata")
-  finalttdrfile <- paste0(kde_folder,"/",ptt,"_2d_ttdr.rdata")
-  
-  save(mkde.obj, file = mkdeobjfile)
-  save(ttdr, file = finalttdrfile)
-  save(kde_2d_res, file = resfile)
-  write.csv(kde_2d_res, paste0(output_data,"/",ptt,"_2d_res",".csv"), row.names = TRUE)
-  
-  
-  Sys.time() - t
-  
-  
-  
-  # ---------------------------------------------------------------------------
-  # To save objects for further plotting / analysis
-  # 
-  # To save:
-  # 1. mkde object: output of 3D HR calculation
-  # 2. final ttdr dataframe: data used to calculate 3d HR
-  # 3. res: dataframe containing the volumes and thresholds for plotting
-  #
-  # ---------------------------------------------------------------------------
-  
-  # export mkde object and results rdaya and csv files 
-  
-  output_data <- paste0(output_dir,"/","01_kde_3d")
-  if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
-  
-  # create output folder for ptt or organismID
   kde_folder <- paste0(output_data,"/",organismID)
   if(!dir.exists(kde_folder)) dir.create(kde_folder, recursive = TRUE)
   
   # export files as .rdata and csv format
-  mkdeobjfile <- paste0(kde_folder,"/",organismID,"_3dmkde_obj.rdata")
-  finalttdrfile <- paste0(kde_folder,"/",organismID,"_3d_ttdr.rdata")
-  resfile <- paste0(kde_folder,"/",organismID,"_3d_res.rdata")
-  
+  mkdeobjfile <- paste0(kde_folder,"/",organismID,"_2dmkde_obj.rdata")
+  resfile <- paste0(kde_folder,"/",organismID,"_2d_res.rdata")
+
   
   save(mkde.obj, file = mkdeobjfile)
-  save(ttdr, file = finalttdrfile)
-  save(kde_3d_res, file = resfile)
-  write.csv(kde_3d_res, paste0(kde_folder,"/",organismID,"_3d_res",".csv"), row.names = TRUE)
+  save(kde_2d_res, file = resfile)
+  write.csv(kde_2d_res, paste0(kde_folder,"/",organismID,"_2d_res",".csv"), row.names = TRUE)
+  
+  # save(ttdr, file = finalttdrfile)
+  # finalttdrfile <- paste0(kde_folder,"/",organismID,"_2d_ttdr.rdata")
+  
+}
+
+Sys.time() - t # 1min
+
+  
+  
+# -----------------------------------------------------------------------------
+# 3) Combine results and export              ---------------------------------
+  
+# list results for all individuals
+files <- list.files(output_data, pattern = "_2d_res.csv", recursive = TRUE, full.names = TRUE)
+
+# combine csv into single one
+df <- files %>% 
+  purrr::map_df(read.csv)
+  
+# save / export combined result for 3D kernel density estimation
+write.csv(df, paste0(output_data,"/kde_2d_res.csv"), row.names = TRUE)
   
   
   
-  # -----------------------
+# -----------------------------------------------------------------------------
+# 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
   
+# list results for all individuals
+files <- list.files(output_data, pattern = "_2dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
   
-  kde_2d_res_all <- rbind(kde_2d_res_all, twod)
+for (f in files) {
+  # load 2D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_2dmkde_obj\\.rdata$", "", basename(f))
+  
+  # export to raster using mkde.raster function from last version of mkde R pakcage
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_raster.tif")
+  mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # plot(mkde.rst)
+  writeRaster(mkde.rst, rst_file, overwrite = TRUE)
+  
+  # # output ascii file
+  # ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_ascii.txt")
+  # writeToGRASS(mkde.obj, ascii_file)
+  #   
+  # #output VTK file
+  # vtk_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj.vtk")
+  # writeToVTK(mkde.obj, vtk_file,
+  #            description=paste0(organismID," 2D MKDE"))
+}
+
+
+
+
+  

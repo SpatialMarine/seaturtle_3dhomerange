@@ -174,8 +174,9 @@ for (i in 1:length(ttdr_files)) {
   #---------------------------------------------------------
   
   # Calculate raster density for 3D
-  # sometime R sension aborted in this step, re-run again
+  # sometime R sesion aborted in this step, re-run again
   dens.res <- mkde::initializeDensity(mkde.obj, mv.dat, integration.step)
+  
   mkde.obj <- dens.res$mkde.obj  # updated MKDE object 
   mv.dat <- dens.res$move.dat  # updated move data object
   
@@ -279,6 +280,13 @@ for (f in files) {
   load(f)
   # extract id from file
   organismID <- sub("_3dmkde_obj\\.rdata$", "", basename(f))
+  
+  # # export to raster using mkde.raster function from last version of mkde R pakcage
+  # rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_ascii.txt")
+  # mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # plot(mkde.rst)
+   
+  # writeRaster(mkde.rst, rst_file)
   
   # output ascii file
   ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_ascii.txt")
