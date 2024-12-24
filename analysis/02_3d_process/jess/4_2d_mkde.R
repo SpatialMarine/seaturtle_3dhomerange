@@ -133,8 +133,4 @@ save(kde_2d_res, file = resfile)
 write.csv(kde_2d_res, paste0(output_data,"/",ptt,"_2d_res",".csv"), row.names = TRUE)
 
 
-# -----------------------
 
-# combine resuls
-
-kde_2d_res_all <- rbind(kde_2d_res_all, twod)

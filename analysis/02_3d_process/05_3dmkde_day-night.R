@@ -17,6 +17,9 @@
 # extract day and night records from ttdr 3d used in mkde 3D
 
 
+# path
+source("setup.R")
+source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d process
 
 # Load libraries
 library(mkde)

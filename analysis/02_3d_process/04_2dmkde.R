@@ -217,7 +217,7 @@ write.csv(df, paste0(output_data,"/kde_2d_res.csv"), row.names = TRUE)
   
   
 # -----------------------------------------------------------------------------
-# 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
+# 4) export VTK and ASCII 2D files from 2D mkde.obt         ----------------
   
 # list results for all individuals
 files <- list.files(output_data, pattern = "_2dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
