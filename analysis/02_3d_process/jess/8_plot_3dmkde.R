@@ -45,9 +45,12 @@ library(ncdf4)
 
 # Assign thresholds for plotting:
 
-organismID <- 181762
+organismID <- 34321
 file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
 load(file)
+
+
+
 
 
 load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3dmkde_obj_night.rdata")
@@ -70,6 +73,8 @@ F=mkde.obj$d
 ##------------------------------------------------------------------------------------------------------------------------------##
 
 # 3D plot with volume
+
+ptt <- organismID
 
 isosurf3D(x, y, z, F, level = c(vol50, vol95), 
           col = c("red", "yellow"), 
@@ -98,7 +103,15 @@ rgl::plot3d(ttdr$x, ttdr$y, ttdr$depth*(-1), type = "l",
 ## Visualize 3dmkde with bathymetry
 ##------------------------------------------------------------------------------------------------------------------------------##
 
-nc <- nc_open("/Users/jessicaruff/Documents/2020_roarin/Tortugas_3D_2020/R_scripts_2020/R.Scripts.from.Erasmus.Barce.Folder/Agosto_maps_3dhr/bath.aug1.nc")
+nc <- nc_open(paste0(carto_dir,"/bathymetry/gebco_2024/med/gebco_2024_n47.0_s30.0_w-10.0_e38.0.nc"))
+
+# nc <- nc_open("/Users/jessicaruff/Documents/2020_roarin/Tortugas_3D_2020/R_scripts_2020/R.Scripts.from.Erasmus.Barce.Folder/Agosto_maps_3dhr/bath.aug1.nc")
+
+
+
+
+
+
 
 lat <- ncvar_get(nc, varid="northing")
 lon <- ncvar_get(nc, varid="easting")

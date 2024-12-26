@@ -1,9 +1,14 @@
 
 
-# fishtrack 3D function
+# fishtrack 3D functions
+# https://github.com/aspillaga/fishtrack3d
 
 
 
+
+
+
+#------------------------------------------------------------------------------
 
 #' Predict utilization distribution (UD) values from a \code{kde} object
 #'
@@ -52,3 +57,91 @@ predictKde <- function(kde, raster, depths) {
   return(pred)
   
 }
+
+
+
+# ------------------------------------------------------------------------------
+# volumeUD
+
+#' Calculate utilization distribution probability volumes
+#'
+#' This function calculates the utilization distribution probability volumes
+#' from 2D or 3D UD values.
+#'
+#' @param ud a \code{RasterLayer} (2D), \code{RasterStack} or
+#'     \code{RasterBrick} (3D) object with UD values.
+#' @param ind.layer logical. If \code{TRUE}, the UD volume is calculated for
+#'     each layer separately (each layer in the raster belongs to a different
+#'     individual or a different time-period). If \code{FALSE} (the default),
+#'     UD volume is calculated taking into account all the layers (for UD-3D,
+#'     where all the layers correspond to different depth-intervals for the
+#'     same individual and time-period).
+#'
+#' @return a \code{RasterLayer} or a \code{RasterStack} object with UD
+#'     probability volumes.
+#'
+#' @export
+
+
+# Modify version by J.Menéndez-Blázquez in order to not invert values
+
+volumeUD <- function(ud, ind.layer = FALSE) {
+  
+  if (ind.layer & nlayers(ud) > 1) {
+    return(stack(lapply(unstack(ud), volumeUD)))
+  }
+  
+  # Check if arguments are correct =============================================
+  if (is.null(ud) | !class(ud) %in% c("RasterLayer", "RasterStack",
+                                      "RasterBrick")) {
+    stop(paste("Utilization distributions ('ud') must be in a 'RasterLayer',",
+               "'RasterStack' or 'RasterBrick' object."), call. = FALSE)
+  }
+  
+  if (round(sum(values(ud), na.rm = TRUE), 7) != 1) {
+    stop("All the UDs must sum 1.")
+  }
+  
+  names <- names(ud)
+  
+  # Calcular la suma acumulada sin invertir el orden
+  values_sorted <- sort(raster::values(ud))
+  cumsum_values <- cumsum(values_sorted)
+  
+  # Asignar la suma acumulada de vuelta a los valores del raster
+  raster::values(ud) <- cumsum_values[rank(raster::values(ud))]
+  
+  # Restablecer los nombres de las capas
+  names(ud) <- names
+  
+  return(ud)
+}
+
+
+
+# 
+# volumeUD <- function(ud, ind.layer = FALSE) {
+#   
+#   if (ind.layer & nlayers(ud) > 1) {
+#     return(stack(lapply(unstack(ud), volumeUD)))
+#   }
+#   
+#   # Check if arguments are correct =============================================
+#   if (is.null(ud) | !class(ud) %in% c("RasterLayer", "RasterStack",
+#                                       "RasterBrick")) {
+#     stop(paste("Utilization distributions ('ud') must be in a 'RasterLayer',",
+#                "'RasterStack' or 'RasterBrick' object."), call. = FALSE)
+#   }
+#   
+#   if (round(sum(values(ud), na.rm = TRUE), 7) != 1) {
+#     stop("All the UDs must sum 1.")
+#   }
+#   
+#   names <- names(ud)
+#   rank <- (1:length(raster::values(ud)))[rank(raster::values(ud))]
+#   raster::values(ud) <- 1 - cumsum(sort(raster::values(ud)))[rank]
+#   names(ud) <- names
+#   
+#   return(ud)
+#   
+# }

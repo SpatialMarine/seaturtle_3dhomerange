@@ -174,7 +174,7 @@ for (i in 1:length(ttdr_files)) {
   #---------------------------------------------------------
   
   # Calculate raster density for 3D
-  # sometime R sesion aborted in this step, re-run again
+  # sometime R session aborted in this step, re-run again
   dens.res <- mkde::initializeDensity(mkde.obj, mv.dat, integration.step)
   
   mkde.obj <- dens.res$mkde.obj  # updated MKDE object 
@@ -269,8 +269,79 @@ write.csv(df, paste0(output_data,"/kde_3d_res.csv"), row.names = TRUE)
   
 
 
+
+# -------------------------------------------------------------------------------
+# 4) Create Rasterbrick (or RasterStack) from mkde.objt and kde values
+
+# list results for all individuals
+files <- list.files(output_data, pattern = "_3dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
+
+for (f in files) {
+  # load 3D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_3dmkde_obj\\.rdata$", "", basename(f))
+  
+  # info
+  cat("Calculate UD volume / processing mkde.obj to RasterBrick")
+  cat("\n")
+  cat("Processing organism ID:", organismID)
+  
+  # export to raster using mkde.raster function from last version of mkde R pakcage
+  # rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rbrick.tif")
+  # mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # plot(mkde.rst)
+  # Not work for 3D only for 2D and 2.5D...
+  
+  # Crear una lista vacía para almacenar los RasterLayer
+  raster_layers <- list()
+  
+  # Iterar sobre los niveles de z (de 1 a nz) para crear un RasterLayer para cada uno
+  for (i in 1:mkde.obj$nz) {
+    # Extraer los valores para el nivel i
+    d_layer <- mkde.obj$d[, , i]
+    
+    # Crear un RasterLayer para ese nivel (usando x, y como coordenadas y d_layer como valores)
+    r_layer <- raster(d_layer, xmn = min(mkde.obj$x), xmx = max(mkde.obj$x), 
+                      ymn = min(mkde.obj$y), ymx = max(mkde.obj$y))
+    
+    # Añadir el RasterLayer a la lista
+    raster_layers[[i]] <- r_layer
+  }
+  
+  # Convert list of raser layers into RasterStack object
+  # raster_brick <- brick(raster_layers)
+
+  raster_stack <- stack(raster_layers)
+  
+  # add CRS to raster brick
+  crs <- CRS("EPSG:3035") # using newest version of assing CRS
+  crs(raster_stack) <- crs
+  
+  # export raster brick 
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")
+  writeRaster(raster_stack, rst_file, overwrite=TRUE)
+  
+  
+  # calculate ud volumes for raster stack
+  # fishtrack3D::volumeUD()
+  # see also fun/fun_fishtrack3d.R
+  udvolume <- volumeUD(raster_stack, ind.layer = FALSE)
+  
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3d_UD_volume_rstack.tif")
+  writeRaster(udvolume, rst_file, overwrite=TRUE)
+  
+  Sys.sleep(3)
+  
+}
+
+
+
+
+
+
 # -----------------------------------------------------------------------------
-# 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
+# 5) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
 
 # list results for all individuals
 files <- list.files(output_data, pattern = "_3dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
@@ -285,23 +356,20 @@ for (f in files) {
   # rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_ascii.txt")
   # mkde.rst <- mkde::mkdeToTerra(mkde.obj)
   # plot(mkde.rst)
-   
+  
   # writeRaster(mkde.rst, rst_file)
   
   # output ascii file
   ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_ascii.txt")
   writeToGRASS(mkde.obj, ascii_file)
   
+  
   #output VTK file
   vtk_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj.vtk")
   writeToVTK(mkde.obj, vtk_file,
-             description=paste0(organismID," 3D MKDE"))
+             description = paste0(organismID," - 3D MKDE"))
+  unlink(vtk_file)
 }
-
-
-
-
-
 
 
 

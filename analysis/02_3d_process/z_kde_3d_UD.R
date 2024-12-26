@@ -54,8 +54,9 @@ extend.raster = 10000
 # planar crs of study area:
 crs = "+init=EPSG:3035"
 contours = c(0.50, 0.95)
+multiplier = 1
 # number of voxel that the kde function use
-gridsize = c(50)
+gridsize = c(10)
 
 
 
@@ -65,7 +66,7 @@ gridsize = c(50)
 # select ppt for processs... for loop 
 ptt <- ptts[7]
 
-ppt <- 34321
+# ptt <- 34321
 
 
 

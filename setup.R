@@ -44,6 +44,8 @@ locale <- "en_US.UTF-8"
 if(cpu == "jmb") main_dir <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/",project)
 if (!dir.exists(main_dir)) dir.create(main_dir, recursive = TRUE)
 
+# from SML Dropbox
+if (cpu == "jmb") carto_dir <- ("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/data/carto")
 
 # ------------------------------------------------------------------------------
 # 2. Create data paths for planet-api R project --------------------------------
