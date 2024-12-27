@@ -11,69 +11,164 @@
 # Update package and standarized field names following Sequeria et al., 2021
 # by Javier Menéndez-Blázquez | @jmenblaz
 
-# 1) Extract fishing effort for extent of seaturtle kde estimate.
+# 1) Extract fishing effort for extent of seaturtle kde estimate
+  # 1.1) Resample fishing effort to 10x10km2 
+
+# 2) Create a raster stack following the different depths of fishing
+  # 2.1) depth with no fishing values 0
+# 2) Transform fishing effort metric (hours of navigation into proporcional 0-1 values regardign the area) 
+# 4) Calculate the volume of fishing effort
 
 
 
 
-
-
-# Cargar la librería sf
+# 0) --------------------------------------------------------------------------
+library(sp)
 library(sf)
 library(raster)
 
 
+
+# Specify fishing gear and depth (specify fishing depth in meters)
+fishing_gear = "sup_longline" # trawler, etc, etc)
+fishing_depth = 30
+
+
+
+
+# 1) Obtain fishinf effort for same area of tracking data ---------------------
+
 # Assign thresholds for plotting:
 
-organismID <- 181762
-file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
-load(file)
+# MODIFYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY
+organismID <- 34321
+# file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
+# load(file)
 
-# loaded by load(file)
-mkde.obj 
 
-# extract extension from mkde.obj (epsg:3035)
-xmax <- max(mkde.obj$x)
-xmin <- min(mkde.obj$x)
-ymax <- max(mkde.obj$y)
-ymin <- min(mkde.obj$y)
 
-# bounding box of seaturtle track extension
+
+# for (organismID in organismID) {}
+
+
+
+# read raster stack
+udvolume <- stack(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_UD_volume_rstack.tif"))
+# modify names of the layers
+names(udvolume) <- paste("layer", 1:nlayers(udvolume), sep = "_")
+
+# Verificar los nuevos nombres de las capas
+names(fishing_stack)
+
+# add CRS
+crs(udvolume) <- CRS("EPSG:3035")
+
+# extract raster extension as bounding box to delimited the traking area of organism ID
+bb <- extent(udvolume)
+
+xmax <- xmax(bb)
+xmin <- xmin(bb)
+ymax <- ymax(bb)
+ymin <- ymin(bb)
+
+# bounding box of seaturtle track extension as a sfc object
 bb <- st_as_sfc(st_bbox(c(
-    xmin = xmin,
-    ymin = ymin,
-    xmax = xmax,
-    ymax = ymax
-  ), crs = st_crs(3035)))
+      xmin = xmin,
+      ymin = ymin,
+      xmax = xmax,
+      ymax = ymax
+    ), crs = st_crs(3035)))
 
 # convert or transform to from EPSG:3035 to EPSG:4326 (WGS84) bounding box
 bb <- st_transform(bb, crs = 4326)
 bb <- as(bb, "Spatial")  # transfor, from sfc to sp class
 
 
-
 # import fishing effort data (Global fishing Watch, Global Marine Traffic, etc)
 
-# MODIFICAR FUTURO
 # Global Marine Traffic Data 
-file <- list.files(paste0(input_dir,"/fishing/"), full.names = T)
+file <- list.files(paste0(input_dir,"/fishing/"), full.names = T) #MODIFY.....
 fishing <- raster(file)
 
-
-# crop fishing effort to bounding-box of tracking data 
+# crop / mask fishing effort to bounding-box of tracking data 
 # (kernel density estimate extent)
-fishing <- crop(fishing, bb)
-fishing <- raster::mask(fishing, bb)
 
+# for large raster (global datasets), first use crop to delimited minimum convex polygon to bb
+# and then masked the less size raster with the bb
+fishing <- crop(fishing, bb)  # crop raster
+fishing <- raster::mask(fishing, bb)  # mask raster
+
+# plot(fishing)
+# plot(bb, add = TRUE)
+
+
+# transform or reproject to CRS of study
+fishing <- projectRaster(fishing, crs = CRS("EPSG:3035"))
+
+
+# create references raster for resample fishing effort to dimension and exent of tracking data
+# same extension, dimension and resolution
+reference_raster <- raster(extent(udvolume), res = res(udvolume), crs = crs(fishing))
+
+# resample raster
+fishing <- resample(fishing, reference_raster, method = "bilinear")
+
+# Verificar el nuevo raster
+plot(fishing)
+
+
+
+
+
+# 2) ---------------------------------------------------------------------------
 
 # convert from 2D to 3D raster stack fishing effort depends of the fishing gear depth
 # example: trawler, etc
 
 
+# extract number of layers from 
+depths <- nlayers(udvolume)
+
+# create a RasterStack from RasterLayer repeating the original layer
+fishing <- stack(lapply(1:depths, function(x) fishing))
+
+# modify layers names
+names(fishing) <- paste("layer", 1:nlayers(fishing), sep = "_")
+# check
+# plot(fishing)
 
 
-# re-convert to epsg 3035 to work with mkde.obj SRC 
-fishing_3035 <- raster::projectRaster(fishing, crs = CRS("EPSG:3035"))
+# specify the fishing effort in each layer following the "metier" or 
+# fishing art/gear features
+# each layer 10 meters
+
+fsh_layer = (fishing_depth/10)
+
+# For each Rasterstack layer, except the objective fishing layer and the top layers,
+# change values for 0
+
+for (i in (fsh_layer + 1):nlayers(fishing)) {
+  
+  # change layer values by 0 (no fishing effort == no fishing volume)
+  fishing[[i]][] <- 0
+}
+
+# 5. Verificar el resultado
+plot(fishing)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -108,6 +203,11 @@ raster_df <- as.data.frame(raster_wgs84[[3]], xy = TRUE, na.rm = TRUE)
 udvolume <- volumeUD(raster_brick, ind.layer = FALSE)
 
 
+str(mkde.obj)
+
+raster_stack
+
+udvolume
 
 
 

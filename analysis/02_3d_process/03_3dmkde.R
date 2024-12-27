@@ -314,13 +314,23 @@ for (f in files) {
 
   raster_stack <- stack(raster_layers)
   
+  #note that the transformation from mkde.obj to raster stack modify 
+  # the voxel / pixel resolution
+  # it necessary apply a resample
+  
+  # raster of reference of 10x10km = 10,000 m2
+  reference_raster <- raster(
+    xmn = extent(raster_stack)@xmin,
+    xmx = extent(raster_stack)@xmax,
+    ymn = extent(raster_stack)@ymin,
+    ymx = extent(raster_stack)@ymax,
+    res = c(10000, 10000),  # Resolución deseada
+    crs = crs(raster_stack)  # Mantener el CRS original
+  )
+  
   # add CRS to raster brick
   crs <- CRS("EPSG:3035") # using newest version of assing CRS
   crs(raster_stack) <- crs
-  
-  # export raster brick 
-  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")
-  writeRaster(raster_stack, rst_file, overwrite=TRUE)
   
   
   # calculate ud volumes for raster stack
@@ -328,11 +338,24 @@ for (f in files) {
   # see also fun/fun_fishtrack3d.R
   udvolume <- volumeUD(raster_stack, ind.layer = FALSE)
   
+  # export raster brick
+  # Resamplear el RasterStack usando la interpolación bilineal
+  # applied to all raster stack layer
+  
+  raster_stack <- resample(raster_stack, reference_raster, method = "bilinear")
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")
+  writeRaster(raster_stack, rst_file, overwrite=TRUE)
+  
+  
+  udvolume <- resample(udvolume, reference_raster, method = "bilinear")
   rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3d_UD_volume_rstack.tif")
   writeRaster(udvolume, rst_file, overwrite=TRUE)
   
-  Sys.sleep(3)
+  # plot(udvolume)
   
+  Sys.sleep(3)
+  cat("\n")
+  cat("\n")
 }
 
 

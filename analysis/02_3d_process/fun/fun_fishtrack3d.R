@@ -145,3 +145,77 @@ volumeUD <- function(ud, ind.layer = FALSE) {
 #   return(ud)
 #   
 # }
+
+
+
+
+
+
+
+
+
+#-------------------------------------------------------------------------------
+
+' Spatial overlap between two utilization distributions
+#'
+#' This function takes two \code{RasterLayer}, \code{RasterStack} or
+#' \code{RasterBrick} objects with UD volumes and calculates the proportion
+#' of the volume that is overlapped within a probability contour.
+#'
+#' @param ud1,ud2  \code{RasterLayer}, \code{RasterStack} or \code{RasterBrick}
+#'     objects with the UD volumes to overlap. If it is a \code{RasterStack} or
+#'     \code{RasterBrick} object, the number and name of the layers must
+#'     coincide.
+#' @param level UD volume probability contour to be used to calculate the
+#'     volume overlap.
+#' @param symmetric logical. If \code{TRUE}, the overlapped index is calculated
+#'     referred to the total joint volume of the two UDs (volume(overlapped) /
+#'     volume(\code{ud1}) + volume(\code{ud2})). If \code{FALSE}, two overlap
+#'     indexes are calculated, the first one referred to the volume of
+#'     \code{ud1} (volume(overlapped) / volume(\code{ud1})), and the second one
+#'     referred to the volume of \code{ud2} (volume(overlapped) /
+#'     volume(\code{ud2})).
+#'
+#' @return A vector with one (if \code{symmetric == TRUE} or two
+#'     (\code{symmetric == FALSE}) overlap indexes.
+#'
+#' @export
+#'
+#'
+volOverlap <- function(ud1, ud2, level, symmetric = TRUE) {
+  
+  # Check if arguments are correct =============================================
+  if (is.null(ud1) | is.null(ud2) | class(ud1) != class(ud2) |
+      any(!c(class(ud1), class(ud2)) %in% c("RasterLayer", "RasterBrick",
+                                            "RasterStack"))) {
+    stop(paste("Both UDs ('ud1' and 'ud2') must be provided as a ",
+               "'RasterLayer', 'RasterBrick' or 'RasterStack' object."),
+         call. = FALSE)
+  }
+  
+  if (class(ud1) %in% c("RasterBrick", "RasterStack") &
+      any(names(ud1) != names(ud2)) |
+      any(raster::res(ud1) != raster::res(ud2))) {
+    stop("The two UDs must have the same resolution and extension.",
+         call. = FALSE)
+  }
+  
+  if (is.null(level) | class(level) != "numeric" | level < 0 | level > 1) {
+    stop("The probability contour ('level') must be a value between 0 and 1.",
+         call. = FALSE)
+  }
+  
+  data1 <- raster::values(ud1) <= level
+  data2 <- raster::values(ud2) <= level
+  
+  overlap <- sum(data1 & data2)
+  
+  if (symmetric) {
+    total <- sum(data1 | data2)
+    return(round(overlap / total, 3))
+  } else {
+    return(round(c(overlap / sum(data1), overlap / sum(data2)), 3))
+  }
+  
+}
+
