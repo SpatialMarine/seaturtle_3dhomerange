@@ -1,0 +1,28 @@
+---
+title: "fishing_proces_readme"
+author: "jmenblaz"
+format: html
+editor: visual
+---
+
+### outputs
+
+*(from 01_3d_fishing-effort.R)*
+
+-   "*organismID_3d_fishing-effort.tif"* - RasterStack with fishing effort at each depth range for spatial range of organism ID. 0 values represents no fishing effort at these depth or area.
+
+-   *"organismID_3d_fishing-effort_vol.tif"* - RasterStack with volumes of the fishing effort from 0-1 (1 means the maximum effort, and means all the volume occupied)
+
+## Fishing effort 3D processing
+
+From 2D fishing effort to 3D using a specific metier or fishing gear / art specific depth.
+
+Media anual de valores de pesca (1x1 Km^2^): GMTDS, Global Fishing Watch
+
+1\) Se han eliminado outliers o valores de pixel superiores al 95% para delimitar zonas portuarias dado que los valores de esfuerzo pesquero vienen dados por AIS
+
+## Fishing effort 3D
+
+Para calcular el volumen ocupado por la actividad pesquera en cada tramo de profundidad se han obtenido todos los valores de esfuerzo pesquero del área (salvo aquellos \> al 95% de los datos) y se han resampleado en una escala de 0-1 (con 1 siendo el máximo de esfuerzo). Esto se ha realizado para poder calcular el esfuerzo peaquero como si fuese Utilization distribution (UD) como el resultado de un Kernel. Con dicho valores se ha podido calcular el volumen ocupado en función del esfuerzo de pesca para cada voxel gracias a las función `volumeUD` del paquete `fishtrack3D`
+
+Los valores de los raster "organismID_fishing-effort_3d_volume" presentan valores de 0-1, con la proporcion de volumen ocupado en ese voxel en función del esfuerzo pesquero. A mayor esfuerzo pesquero, mayor volumen ocupado. Siguiendo la lógica de los valores de Kernel Density Estimation y el calculo del volumen. A mayor presencia mayor ocupación.
