@@ -318,10 +318,20 @@ for (f in files) {
   # raster_brick <- brick(raster_layers)
 
   raster_stack <- stack(raster_layers)
+
   # add CRS to raster brick
   crs(raster_stack) <- CRS("EPSG:3035") # using newest version of assing CRS
+  # change layers names
   names(raster_stack) <- paste("layer", 1:nlayers(raster_stack), sep = ".")
-    #note that the transformation from mkde.obj to raster stack modify 
+  #plot(raster_stack)
+  
+  # values 0 as NA
+  raster_stack <- calc(raster_stack, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
+  
+  # note that the transformation from mkde.obj to raster stack modify 
   # the voxel / pixel resolution
   # it necessary apply a resample
   
@@ -340,11 +350,18 @@ for (f in files) {
   # fishtrack3D::volumeUD()
   # see also fun/fun_fishtrack3d.R
   udvolume <- volumeUD(raster_stack, ind.layer = FALSE)
+  # crs
   crs(udvolume) <- CRS("EPSG:3035")
-  #plot(udvolume)
   # rename rasterstack layers names
   names(udvolume) <- paste("layer", 1:nlayers(udvolume), sep = ".")
+
+  # 0 values as NA
+  udvolume <- calc(udvolume, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
   
+  #plot(udvolume)
   # export raster brick
   # raster_stack <- resample(raster_stack, reference_raster, method = "bilinear") # Note: used in the first version (no layer fliped)
   rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")

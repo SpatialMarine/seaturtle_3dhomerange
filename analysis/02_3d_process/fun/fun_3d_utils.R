@@ -1,21 +1,39 @@
+
+#------------------------------------------------------------------------------
+## 3D Habitat Use of Loggerhead Turtles
+
+## Created by Jessica Ruff and by Javier Menéndez-Blázquez | @jmenblaz
+
+# Update package and standarized field names following Sequeria et al., 2021
+# by Javier Menéndez-Blázquez | @jmenblaz
+
+
+
+
+
+
 # utils.R
 # Suite of custom functions:
-#
-# ks3d         Calculate 3D volumnes using ks package
-# mkde3d         Calculate 3D volumnes using mkde package
-# reproject       Reproject coordinates to metric system
-# resampTTDR         Resample TTDR data at larger time intervals (6H)
-# xy.error         Calculate the horizontal error from SSM data
-# z.error         Calculate the vertical error from TTDR data
 
-# # initializeMovementData modify from "mkde" R package. Note: this function it
+
+# ks3d               Calculate 3D volumnes using ks package
+# mkde3d             Calculate 3D volumnes using mkde package
+# reproject          Reproject coordinates to metric system
+# resampTTDR         Resample TTDR data at larger time intervals (6H)
+# xy.error           Calculate the horizontal error from SSM data
+# z.error            Calculate the vertical error from TTDR data
+
+#  initializeMovementData  modify from "mkde" R package. Note: this function it
 #                          wasn't works properlly (2024). There was and error in 
 #                          the logic evaluation of NA. Modified to correct this.
 #                          After the modification, the functions works well and
 #                          provides same results than those obtained by Jess Ruff (2021)
 
 
+# compThresholds      using quartiles to obtain the threshold values of the countours
 
+# calculate_vol_stack    calculate the volume of the voxel (pixel x z) due a threshold values or 
+#                        for all the voxeles with data (NA and 0 omit)
 
 
 
@@ -332,9 +350,6 @@ xy.error <- function(ssm){
 
 
 
-
-
-
 #--------------------------------------------------------------------------------
 # z.error         Calculate the vertical error from TTDR data
 #--------------------------------------------------------------------------------
@@ -350,9 +365,6 @@ z.error <- function(depth.upper, depth.lower){
   return(er)
 }
 #--------------------------------------------------------------------------------
-
-
-
 
 
 
@@ -421,6 +433,7 @@ initializeMovementData <- function(t.obs, x.obs, y.obs, z.obs=NULL,
   return(move.dat)
 }
 
+# ------------------------------------------------------------------------------
 
 
 
@@ -430,3 +443,174 @@ initializeMovementData <- function(t.obs, x.obs, y.obs, z.obs=NULL,
 
 
 
+
+# For the next function example use, provide quartiles to compute thresholds or
+# use those provided by mkde functions -> Same thresholds
+
+
+# quartiles <- c(0.95, 0.75, 0.5)
+# z = 10 
+
+# compThresholds(raster_stack, prob = quartiles)
+# calculate_vol_stack(raster_stack, threshold, z)
+
+
+
+
+#-------------------------------------------------------------------------------
+#                          calculate thresholds values for UD or % of data
+#-------------------------------------------------------------------------------
+
+# Compute thresholds value for a RasterStack or Brick for delimite quantiles or 
+# contours
+
+# Delimited areas or volumens based on threshold
+
+
+# This function is similar to this used in mkde R package 
+# but used in RasterStack instead of mkde.obj
+
+compThresholds <- function(raster_stack, prob) {
+  # Extraer todos los valores del raster stack como un solo vector
+  all_values <- values(raster_stack)
+  all_values <- as.vector(all_values) # Combinar en un vector único
+  all_values <- all_values[!is.na(all_values)] # Remover valores NA
+  
+  # Validar que hay datos suficientes
+  if (length(all_values) == 0) {
+    stop("No hay valores válidos en el raster stack.")
+  }
+  
+  # Calcular los umbrales considerando todo el volumen
+  d2 <- sort(all_values)
+  d3 <- cumsum(d2) / sum(d2)
+  a <- 1 - prob
+  nq <- length(a)
+  thresh <- rep(NA, nq)
+  for (j in 1:nq) {
+    idx <- which(d3 <= a[j])
+    if (length(idx) > 0) {
+      thresh[j] <- d2[max(idx)]
+    }
+  }
+  
+  # Crear el data.frame de salida
+  result <- data.frame(
+    prob = prob,
+    threshold = format(thresh, scientific = TRUE))
+  return(result)
+}
+
+
+
+# example of use
+
+# probabilities <- c(0.95, 0.75, 0.5)
+# 
+# thresholds <- compThresholds(raster_stack, probabilities)
+# print(thresholds)
+
+# > thresholds
+# prob    threshold
+# 1 0.50 6.793741e-04
+# 2 0.75 2.899344e-04
+# 3 0.95 5.030352e-05
+
+
+
+
+
+
+#------------------------------------------------------------------------------
+# calculate_vol_stack
+#------------------------------------------------------------------------------
+
+
+# calcultate_vol_stack function allows obtain volumes using a threshold value
+# or calculate the entire volume of the rasterstack whitout usig a specific value
+
+
+# threshold value
+# not use probability
+
+# threshold = res$threshold.95 # valor umbral del threshold... no la probabilidad
+
+calculate_vol_stack <- function(raster_stack, threshold = NULL, z) {
+  # Verificar que el raster_stack tiene múltiples capas
+  if (!inherits(raster_stack, "RasterStack") && !inherits(raster_stack, "RasterBrick")) {
+    stop("object must be a RasterStack or RasterBrick.")
+  }
+  
+  # if threshold is not provide, calculate the total volume
+  # Si no se proporciona un threshold, calcular el volumen total
+  if (is.null(threshold)) {
+    # values 0 as NA to avoid cells with no data
+    raster_stack <- calc(raster_stack, fun = function(x) { 
+      x[x == 0] <- NA
+      return(x)
+    })
+    threshold <- min(na.omit(values(raster_stack)))  # use min value of rasdter
+  }
+  
+  # Calcular las resoluciones espaciales (asumimos que todas las capas tienen la misma resolución)
+  xSz <- raster::xres(raster_stack)
+  ySz <- raster::yres(raster_stack)
+  zSz <- z # Si no tienes una dimensión z explícita, puedes asignarle un valor predeterminado
+  
+  # Volumen de cada celda (3D)
+  av <- xSz * ySz * zSz
+  
+  # Inicializar volumen total
+  total_volume <- 0
+  
+  # Iterar sobre cada capa del RasterStack
+  for (j in 1:nlayers(raster_stack)) {
+    # Extraer los valores de la capa
+    layer_vals <- raster::values(raster_stack[[j]])
+    
+    # Identificar celdas que cumplen con el umbral
+    indices_above_threshold <- which(layer_vals >= threshold)
+    
+    # Agregar el volumen de las celdas que cumplen con el umbral
+    total_volume <- total_volume + (av * length(indices_above_threshold))
+  }
+  
+  return(total_volume)
+}
+
+
+# 
+# # threshold value, not use probability
+# # threshold = res$threshold.95 # valor umbral del threshold... no la probabilidad
+# 
+# calculateVolumeRasterStack <- function(raster_stack, threshold) {
+#   # Verificar que el raster_stack tiene múltiples capas
+#   if (!inherits(raster_stack, "RasterStack") && !inherits(raster_stack, "RasterBrick")) {
+#     stop("El objeto debe ser un RasterStack o RasterBrick.")
+#   }
+#   
+#   # Calcular las resoluciones espaciales (asumimos que todas las capas tienen la misma resolución)
+#   xSz <- raster::xres(raster_stack)
+#   ySz <- raster::yres(raster_stack)
+#   zSz <- 10 # Si no tienes una dimensión z explícita, puedes asignarle un valor predeterminado
+#   
+#   # Volumen de cada celda (3D)
+#   av <- xSz * ySz * zSz
+#   
+#   # Inicializar volumen total
+#   total_volume <- 0
+#   
+#   # Iterar sobre cada capa del RasterStack
+#   for (j in 1:nlayers(raster_stack)) {
+#     # Extraer los valores de la capa
+#     layer_vals <- raster::values(raster_stack[[j]])
+#     
+#     # Identificar celdas que cumplen con el umbral
+#     indices_above_threshold <- which(layer_vals >= threshold)
+#     
+#     # Agregar el volumen de las celdas que cumplen con el umbral
+#     total_volume <- total_volume + (av * length(indices_above_threshold))
+#   }
+#   
+#   return(total_volume)
+# }

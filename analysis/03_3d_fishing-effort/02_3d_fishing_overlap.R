@@ -1,9 +1,134 @@
+#------------------------------------------------------------------------------
+## 3D Habitat Use of Loggerhead Turtles
+
+## Created by Javier Menéndez-Blázquez | @jmenblaz
+
+# Update package and standarized field names following Sequeria et al., 2021
+
+
+
+# 1) load importa data 
 
 
 
 
 
-organismID <- 151935
+# ------------------------------------------------------------
+
+
+
+# 0) Load libraries -----
+library(mkde)
+library(raster)
+
+source("setup.R")
+source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d process
+
+# -----------------------------------------------------------------------
+
+
+
+# 1) load importa data ----------------------------------------------------
+# kde 3D results
+kde_files <- list.files(paste0(main_dir,"/output/01_kde_3d/"), full.names = TRUE, pattern = "_3dmkde_obj_rstack.tif", recursive = TRUE)
+kde_res <- read.csv(paste0(main_dir,"/output/01_kde_3d/kde_3d_res.csv"))
+
+
+
+# ------------------------------------------------------------------------------
+# 2) process 3D overlap between fishing effort data and kde organism ID processed 
+
+# t <- Sys.time()
+# 
+# cores <- detectCores() - 2
+# cl <- makeCluster(cores)
+# registerDoParallel(cl)
+# 
+# getDoParWorkers() # backend information
+
+
+t <- Sys.time()
+
+for (i in 1:length(kde_files)) { }
+  
+  # 1) load data for processing - kde and fishing effort --------------
+  kde <- kde_files[i]
+  # extract organismID from L3_ttdr fiel name
+  organismID <- sub("_3dmkde_obj_rstack\\.tif$", "", basename(kde))
+  
+  # info 
+  cat("Processing 3D overlap with fisheries:", i,"/",length(kde_files))
+  cat(" · organismID:", organismID, "\n")
+  
+  # load kde result from mkde 3d functions process
+  # note: volumes in m3
+  kde_res_id <- kde_res %>% filter(kde_res$organismID == !!organismID)
+  
+  
+  # load 3D kde (rasterstack)
+  kde <- raster::stack(kde)
+  crs(kde) <- CRS("EPSG:3035")  # add CRS
+  names(kde) <- paste("layer", 1:nlayers(kde), sep = ".")  # rename layers
+  
+  # values 0 as NA
+  kde <- calc(kde, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
+  
+  # min(values(kde), na.rm = TRUE)
+  # plot(kde)
+
+  # load fishing data
+  fishing <- raster::stack(paste0(main_dir,"/output/03_fishing_3d/",organismID,"_3d_fishing-effort.tif"))
+  crs(fishing) <- CRS("EPSG:3035")  # add CRS
+  names(fishing) <- paste("layer", 1:nlayers(kde), sep = ".")  # rename layers
+  plot(fishing)
+  
+  # check min values without NA
+  # min(values(fishing), na.rm = TRUE)
+  
+  
+  
+  # 2) calculate the 3D overlap ------------------------------------------
+  
+  # 2.1) calculate interaction between kde and fishing effort
+  # multiply kde and fishing effort values to identify areas with high impact
+  fishing_interact <- kde * fishing
+    plot(fishing_interact)
+  
+  # raster2 used as mask in mask()
+  # logic: remove voxels where there are fishing impact in order to calculate 
+  # the remaining volume 
+  # result is the volumen affects by fishing activities 
+  # (in neceesary to calculate the difference between total volume or with threshold)
+  fishing_intersect <- raster::mask(kde, fishing)  # provide the volume of the impact
+    plot(fishing_intersect)
+    
+  # kde without fishing area of impact(simetrical diference)
+  fishing_simdif <- raster::mask(kde, fishing,  inverse=TRUE) # provide the UD volume without impact
+    plot(fishing_simdif)
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    
+    
+  
+  
+  calculate_vol_stack(kde, z = z, threshold)
+  
+  # intersect raster to obtain symmetrical diference between them
+  
+  
+  
+  
+organismID <- 34321
 
 # calcular volumen
 
@@ -12,269 +137,50 @@ load(file)
 str(mkde.obj)
 
 
- 
+
 raster_stack <- stack(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif"))
 crs(raster_stack) <- CRS("EPSG:3035")
+names(raster_stack) <- paste("layer", 1:nlayers(raster_stack), sep = ".")
 plot(raster_stack)
 
-# read res for threshold values
-res <- read.csv(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_res.csv"))
+min(na.omit(values(raster_stack)))
 
+# values 0 as NA
+raster_stack <- calc(raster_stack, fun = function(x) { 
+  x[x == 0] <- NA
+  return(x)
+})
 
-# import locs and ttdr data for this organismID or ptt ----------------------
-ttdr <- paste0(main_dir,"/input/tracking/ttdr/L3/",organismID,"_L3_ttdr.csv")
-ttdr <- read.csv(ttdr, dec=",", head=TRUE)
 
-str(ttdr)
+# - kde 
+# - fishing effort for organism ID spatial extent tracking
 
 
 
 
 
-threshold_res <- res$threshold.95 # 5.030352e-05
+# 2) -
 
 
+# 4) fishing overlap
 
 
-# COMPUTE VALUES PARA UN RASTER STACK
 
-probabilities <- c(0.95, 0.75, 0.5)
 
-thresholds <- computeContourValuesVolume(raster_stack, probabilities)
-print(thresholds)
 
 
 
-threshold <- thresholds$threshold[1] # 5.030352e-05
 
 
 
-res$volume.95 # 2.494e+12
 
-calculateVolumeRasterStack(raster_stack, threshold) # 2.297264e+12
 
 
 
-plot(raster_stack)
 
 
 
-mean(values(raster_stack))
-mean(mkde.obj$d)
 
-
-
-####
-
-
-# Tanto para todo el volumen como para cierto thresholds
-
-#################################################################################
-#################################################################################
-#################################################################################
-#################################################################################
-
-# funcion para calcular volumenes en RasterStacks o Bricks, funciona correctamente:
-
-calculateVolumeRasterStack <- function(raster_stack, threshold) {
-  # Verificar que el raster_stack tiene múltiples capas
-  if (!inherits(raster_stack, "RasterStack") && !inherits(raster_stack, "RasterBrick")) {
-    stop("El objeto debe ser un RasterStack o RasterBrick.")
-  }
-  
-  # Calcular las resoluciones espaciales (asumimos que todas las capas tienen la misma resolución)
-  xSz <- raster::xres(raster_stack)
-  ySz <- raster::yres(raster_stack)
-  zSz <- 10 # Si no tienes una dimensión z explícita, puedes asignarle un valor predeterminado
-  
-  # Volumen de cada celda (3D)
-  av <- xSz * ySz * zSz
-  
-  # Inicializar volumen total
-  total_volume <- 0
-  
-  # Iterar sobre cada capa del RasterStack
-  for (j in 1:nlayers(raster_stack)) {
-    # Extraer los valores de la capa
-    layer_vals <- raster::values(raster_stack[[j]])
-    
-    # Identificar celdas que cumplen con el umbral
-    indices_above_threshold <- which(layer_vals >= threshold)
-    
-    # Agregar el volumen de las celdas que cumplen con el umbral
-    total_volume <- total_volume + (av * length(indices_above_threshold))
-  }
-  
-  return(total_volume)
-}
-
-
-##############################################
-##############################################
-##############################################
-##############################################
-##############################################
-##############################################
-
-
-
-
-# COMPUTE VALUES PARA UN RASTER STACK
-
-probabilities <- c(0.95, 0.7, 0.5)
-
-# esta funcion funciona, da el mismo threshold
-# mismo valores en el raster_stack
-
-# Esta FUNCION HAY QUE METERLA EN LA DE CALCULAR LOS VOLUMENES ENTONCES...
-# estaria bis ajustarla para que si hay proabilidad calcule ese cacho, sino que calcule todo el area ocupada
-
-thresholds <- computeContourValuesVolume(raster_stack, probabilities)
-print(thresholds)
-
-
-
-
-computeContourValuesVolume <- function(raster_stack, prob) {
-  # Extraer todos los valores del raster stack como un solo vector
-  all_values <- values(raster_stack)
-  all_values <- as.vector(all_values) # Combinar en un vector único
-  all_values <- all_values[!is.na(all_values)] # Remover valores NA
-  
-  # Validar que hay datos suficientes
-  if (length(all_values) == 0) {
-    stop("No hay valores válidos en el raster stack.")
-  }
-  
-  # Calcular los umbrales considerando todo el volumen
-  d2 <- sort(all_values)
-  d3 <- cumsum(d2) / sum(d2)
-  a <- 1 - prob
-  nq <- length(a)
-  thresh <- rep(NA, nq)
-  for (j in 1:nq) {
-    idx <- which(d3 <= a[j])
-    if (length(idx) > 0) {
-      thresh[j] <- d2[max(idx)]
-    }
-  }
-  
-  # Crear el data.frame de salida
-  result <- data.frame(prob = prob, threshold = thresh)
-  return(result)
-}
-
-
-# funciona la funciona para calcular el threshold, pero es similar al calculado por mkde
-# se puede suprimir o guardar por si acaso se utiliza en otro lado
-
-
-###########################################################################
-###########################################################################
-###########################################################################
-###########################################################################
-###########################################################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ------------------------------------------------------------------------------
-# 3) Transform fishing effort metric (hours of navigation into proportional 0-1 values)
-
-min_value <- min(fishing[], na.rm = TRUE)
-max_value <- max(fishing[], na.rm = TRUE)
-
-# Normalize raster from 0 y 1
-fishing_normalized <- (fishing - min_value) / (max_value - min_value)
 
 
 
@@ -346,88 +252,133 @@ writeRaster(udvolume, rst_file, overwrite=TRUE)
 
 
 
-library(mkde)
-library(plot3D)
-library(rgl)
-library(plot3Drgl)
-library(RColorBrewer)
-library(rasterVis)
-library(raster)
-library(terra)
-library(ncdf4)
-library(rayshader)
-##------------------------------------------------------------------------------------------------------------------------------##
-## Load data -- if not already loaded:
-## -- ttdr data frame
-## -- mkde object
-## -- density threshold estimates for 50 and 95 volumes
-##------------------------------------------------------------------------------------------------------------------------------##
-
-# Import data
-
-# # load ttdr dataframe
-# 
-# load("/Users/jessicaruff/Documents/2020_roarin/Tortugas_3D_2020/3dHR_output_2020_Dec_1/lasi_ttdr_daily.mean.depth.rdata")
-# 
-# # load mkde object
-# 
-# load("/Users/jessicaruff/Documents/2020_roarin/Tortugas_3D_2020/3dHR_output_2020_Dec_1/lasi_mkde_daily.mean.depth.rdata")
-# 
-# # Load density threshold estimates for 50 and 95 volumes
-# 
-# load("/Users/jessicaruff/Documents/2020_roarin/Tortugas_3D_2020/3dHR_output_2020_Dec_1/lasi_res_daily.mean.depth.rdata")
-
-##------------------------------------------------------------------------------------------------------------------------------##
 
 
 
 
-# Assign thresholds for plotting:
 
-organismID <- 181762
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+organismID <- 34321
+
+# calcular volumen
+
 file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
 load(file)
+str(mkde.obj)
 
+
+
+raster_stack <- stack(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif"))
+crs(raster_stack) <- CRS("EPSG:3035")
+names(raster_stack) <- paste("layer", 1:nlayers(raster_stack), sep = ".")
+plot(raster_stack)
+
+min(na.omit(values(raster_stack)))
+
+# values 0 as NA
+raster_stack <- calc(raster_stack, fun = function(x) { 
+  x[x == 0] <- NA
+  return(x)
+})
+
+
+
+
+# read res for threshold values
 res <- read.csv(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_res.csv"))
-ttdr <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_ttdr.rdata")
-load(ttdr)
+
+
+# import locs and ttdr data for this organismID or ptt ----------------------
+# ttdr <- paste0(main_dir,"/input/tracking/ttdr/L3/",organismID,"_L3_ttdr.csv")
+# ttdr <- read.csv(ttdr, dec=",", head=TRUE)
+
+str(ttdr)
 
 
 
-# load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3dmkde_obj_night.rdata")
+min(mkde.obj$d)
+mean(mkde.obj$d)
+min(na.omit(values(raster_stack)))
 
 
-# load("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/34321/34321_3dmkde_obj.rdata")
 
-#res threshoold
-vol95 <- res$threshold.95
-vol50 <- res$threshold.50
 
-# Get array from mkde object
-x=mkde.obj$x
-y=mkde.obj$y
-z=mkde.obj$z*(-1) # change depth to negative for plotting
-F=mkde.obj$d
+# COMPUTE VALUES PARA UN RASTER STACK
 
-##------------------------------------------------------------------------------------------------------------------------------##
-## Visualize 3dmkde
-##------------------------------------------------------------------------------------------------------------------------------##
-
-# 3D plot with volume
-
-ptt <- organismID
-
-isosurf3D(x, y, z, F, level = c(vol50, vol95), 
-          col = c("red", "yellow"), 
-          clab = "F", alpha = 0.4,  lighting = TRUE, plot=FALSE, main = ptt, zlim = c(0,-120), ticktype = "detailed")
+quartiles <- c(0.95, 0.75, 0.5)
 
 
 
 
 
 
+res$volume.95 # 2.494e+12
+res$volume.75 # 9.67e+11 
+res$volume.50 # 4.08e+11
+res$threshold.95 #  5.030352e-05
+res$threshold.75 # 0.0002899344
+res$threshold.50 # 0.0006793741
 
 
+
+
+thresholds <- computeContourValuesVolume(raster_stack, quartiles) # funciona la funciona bien
+
+print(thresholds)
+
+
+
+threshold = res$threshold.50
+
+threshold = res$threshold.95 # valor umbral del threshold... no la probabilidad
+calculateVolumeRasterStack(raster_stack, threshold) # 2.369499e+12
+
+
+
+
+
+calculateVolumeForThresholds(raster_stack, quartiles)
+
+
+
+quartiles <- c(0.95, 0.75, 0.5)
+z = 10 
+compThresholds(raster_stack, prob = quartiles)
+
+calculate_vol_stack(raster_stack, z = z, threshold)
+
+
+plot(raster_stack)
+
+
+
+mean(values(raster_stack))
+mean(mkde.obj$d)
 
 
 
