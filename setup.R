@@ -24,6 +24,7 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
                "rnaturalearthhires", "maptools", "suntools", "raster", #spatial
+               "suncalc",
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
                "rgl", "plot3D", "plotly","plot3Drgl", # 3D visualization
                "diveMove", # process dive tracking data

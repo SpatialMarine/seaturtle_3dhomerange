@@ -8,10 +8,10 @@
 
 
 # 1) load importa data 
-
-
-
-
+# 2) process 3D overlap between fishing effort data and kde organism ID processed 
+#   - 2.1 Load data for processing - kde and fishing effort 
+#   - 2.2 Calculate the 3D overlap ------------------------------------------
+#   - 2.3 Calculate the 3D overlap volumes  ---------------------------------
 
 # ------------------------------------------------------------
 
@@ -102,117 +102,56 @@ for (i in 1:length(kde_files)) { }
   # the remaining volume 
   # result is the volumen affects by fishing activities 
   # (in neceesary to calculate the difference between total volume or with threshold)
-  fishing_intersect <- raster::mask(kde, fishing)  # provide the volume of the impact
-    plot(fishing_intersect)
+  kde_fishing_intersect <- raster::mask(kde, fishing)  # provide the volume of the impact
+    plot(kde_fishing_intersect)
     
   # kde without fishing area of impact(simetrical diference)
-  fishing_simdif <- raster::mask(kde, fishing,  inverse=TRUE) # provide the UD volume without impact
-    plot(fishing_simdif)
-  
-  
-  
+  kde_fishing_simdif <- raster::mask(kde, fishing,  inverse=TRUE) # provide the UD volume without impact
+    plot(kde_fishing_simdif)
   
     
+  
+  # 3) calculate the 3D overlap volumes  ---------------------------------
     
-    
-    
-    
-    
-    
+  threshold.95 <- kde_res_id$threshold.95  
+  threshold.75 <- kde_res_id$threshold.75
+  threshold.50 <- kde_res_id$threshold.50
+  
+  z = 10 # depth meters per layer
+  volume.95 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.95)
+  volume.75 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.75)
+  volume.50 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.50)
+  
+  # UD volume intersect between fishing effort 
+  udvol95_intersect <- (kde_res_id$volume.95) - volume.95
+  udvol95_intersect_percentage <- ((kde_res_id$volume.95 - volume.95) / kde_res_id$volume.95) * 100
+  
+  udvol75_intersect <- (kde_res_id$volume.95) - volume.75
+  udvol75_intersect_percentage <- ((kde_res_id$volume.75 - volume.75) / kde_res_id$volume.75) * 100
+  
+  udvol50_intersect <- (kde_res_id$volume.50) - volume.50
+  udvol50_intersect_percentage <- ((kde_res_id$volume.50 - volume.50) / kde_res_id$volume.50) * 100
+  
+  # for total volume
+  volume.total     <- calculate_vol_stack(kde, z = z)
+  volume_intersect <- calculate_vol_stack(kde_fishing_intersect, z = z)
+  volume_total_intersect <- volume.total - volume_intersect
   
   
-  calculate_vol_stack(kde, z = z, threshold)
   
-  # intersect raster to obtain symmetrical diference between them
-  
+  # 4) save / export results ----------------------------------------------
   
   
   
-organismID <- 34321
-
-# calcular volumen
-
-file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
-load(file)
-str(mkde.obj)
-
-
-
-raster_stack <- stack(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif"))
-crs(raster_stack) <- CRS("EPSG:3035")
-names(raster_stack) <- paste("layer", 1:nlayers(raster_stack), sep = ".")
-plot(raster_stack)
-
-min(na.omit(values(raster_stack)))
-
-# values 0 as NA
-raster_stack <- calc(raster_stack, fun = function(x) { 
-  x[x == 0] <- NA
-  return(x)
-})
-
-
-# - kde 
-# - fishing effort for organism ID spatial extent tracking
-
-
-
-
-
-# 2) -
-
-
-# 4) fishing overlap
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ------------------------------------------------------------------------------
-# 4) Calculate the volume of fishing effort
-# using fishingtrack3D function (see 02_3d_proces/fun/fun_fishtrack3d.R)
-
-fishing_volume <- volumeUD(fishing_normalized, ind.layer = FALSE)
-
-
-values(raster_stack)
-
-
-
-# calculate ud volumes for raster stack
-# fishtrack3D::volumeUD()
-# see also fun/fun_fishtrack3d.R
-udvolume <- volumeUD(raster_stack, ind.layer = FALSE)
-
-# export raster brick
-# Resamplear el RasterStack usando la interpolación bilineal
-# applied to all raster stack layer
-
-
-rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")
-writeRaster(raster_stack, rst_file, overwrite=TRUE)
-
-
-
-rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3d_UD_volume_rstack.tif")
-writeRaster(udvolume, rst_file, overwrite=TRUE)
+  
+  
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")
+  writeRaster(raster_stack, rst_file, overwrite=TRUE)
+  
+  
+  
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3d_UD_volume_rstack.tif")
+  writeRaster(udvolume, rst_file, overwrite=TRUE)
 
 
 

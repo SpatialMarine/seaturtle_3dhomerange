@@ -11,6 +11,7 @@
 # Standardization made it by J.Menéndez-Blázquez (@jmenblaz) 
 # based in Sequeira et al., 2021
 
+# also add daynight info for each dive based into 
 
 
 
@@ -40,9 +41,9 @@ ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L3_ttdr.csv")
 #---------------------------------------------------------------
 # 3. Process  files
 
-#  cores <- detectCores() - 2
-# cl <- makeCluster(cores)
-# registerDoParallel(cl)
+cores <- detectCores() - 2
+cl <- makeCluster(cores)
+registerDoParallel(cl)
 
 t <- Sys.time()
 
@@ -83,8 +84,28 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
   dive_sum <- dive_sum %>% inner_join(dplyr::select(data, time, longitude, latitude, z.error, xy.error), by = c("begdesc" = "time"))
   
   # select variables
+  # note: divetime (== dive duration in seconds)
   df <- dplyr::select(dive_sum, dive.id, longitude, latitude, begdesc, endasc, divetim,
                       pdd, pdd_qc, maxdep, depth_upper_error, depth_lower_error, dtype, z.error, xy.error)
+  
+  # add daynight information and moon bright and phases
+  df$daynight <- daynight(lon = df$longitude, lat = df$latitude, time = df$begdesc)
+  moon <- suncalc::getMoonIllumination(date = df$begdesc)
+  # moon fraction: illumintated fraction varies from 0.0 (new moon) to 1.0 (full moon)
+  # moon illumination categories: 0.0 . 0.3 dark, 0.3 - 0.6 medium, 0.6 - 1.0 (bright)
+  # moon phase: 
+  # 0 : New Moon 
+  # Waxing Crescent
+  # 0.25 : First Quarter
+  # Waxing Gibbous
+  # 0.5: Full Moon
+  # Waning Gibbous
+  # 0.75: Last Quarter
+  # Waning Crescent
+
+  df$moon_bright <- moon$fraction
+  df$moon_phase  <- moon$phase
+  
   # add id
   df <- cbind(organismID, df)
   
