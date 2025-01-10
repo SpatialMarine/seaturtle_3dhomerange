@@ -6,14 +6,27 @@
 #' This script use the postprocess L1 ttdr data to obtain differenrt dives for
 #' seaturtle
 
-# Stadarization made it by J.Menéndez-Blázquez (@jmenblaz) 
+#' First script draft by D.March 
+
+# Standardization made it by J.Menéndez-Blázquez (@jmenblaz) 
 # based in Sequeira et al., 2021
 
 
+
+
 #---------------------------------------------------------------
+
+# 0. load functions
+# tracking functions paths
+funs <- list.files("analysis/01_tracking/fun/", pattern = "\\.R$", full.names = TRUE)
+# read .R scripts with source
+sapply(funs, source)
+
+
+
 # 1. Set data repository
 
-input_data <- paste0(input_dir,"/tracking/ttdr/L2")
+input_data <- paste0(input_dir,"/tracking/ttdr/L3")
 output_data <- paste0(input_dir,"/tracking/dives")
 if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 
@@ -21,7 +34,7 @@ if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 #---------------------------------------------------------------
 # 2. Import data
 # read all ttdr.files
-ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L2_ttdr.csv")
+ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L3_ttdr.csv")
 
 
 #---------------------------------------------------------------
@@ -66,12 +79,12 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
     dive_sum$depth_lower_error[j] <- sdata$depth_lower_error[sel]
   }
   
-  # Add latitute and longitude from TTDR dataset
-  dive_sum <- dive_sum %>% inner_join(dplyr::select(data, time, longitude, latitude), by = c("begdesc" = "time"))
+  # Add latitute and longitude from TTDR dataset (and z.error, xy.error)
+  dive_sum <- dive_sum %>% inner_join(dplyr::select(data, time, longitude, latitude, z.error, xy.error), by = c("begdesc" = "time"))
   
   # select variables
   df <- dplyr::select(dive_sum, dive.id, longitude, latitude, begdesc, endasc, divetim,
-                      pdd, pdd_qc, maxdep, depth_upper_error, depth_lower_error, dtype, xy_error)
+                      pdd, pdd_qc, maxdep, depth_upper_error, depth_lower_error, dtype, z.error, xy.error)
   # add id
   df <- cbind(organismID, df)
   
