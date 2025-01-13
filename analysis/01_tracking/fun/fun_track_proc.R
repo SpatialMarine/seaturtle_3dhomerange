@@ -25,7 +25,7 @@
 # Updated by J. Menéndez-Blázquez for standardization of variables names
 # following Sequeria et al., 2021
 
-
+# get_sesson        North hemisphere, add seasson class based on date
 
 
 
@@ -421,3 +421,28 @@ timedif.segment <- function(x, thrs){
   return(segments)
 }
 #----------------------------------------------------------------------------------------------
+
+
+
+# -------------------------------------------------------------------------------
+
+# -------------------------------------------------------------------------------
+
+# for north hemisphere
+# get seassons
+get_season <- function(date) {
+  year <- format(date, "%Y")
+  winter_start <- as.Date(paste0(year, "-12-21"))
+  winter_end <- as.Date(paste0(as.numeric(year) + 1, "-03-20"))
+  spring_start <- as.Date(paste0(year, "-03-21"))
+  spring_end <- as.Date(paste0(year, "-06-20"))
+  summer_start <- as.Date(paste0(year, "-06-21"))
+  summer_end <- as.Date(paste0(year, "-09-20"))
+  autumn_start <- as.Date(paste0(year, "-09-21"))
+  autumn_end <- as.Date(paste0(year, "-12-20"))
+  
+  ifelse(date >= winter_start | date <= winter_end, "winter",
+         ifelse(date >= spring_start & date <= spring_end, "spring",
+                ifelse(date >= summer_start & date <= summer_end, "summer",
+                       "autumn")))
+}

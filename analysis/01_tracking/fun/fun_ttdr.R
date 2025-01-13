@@ -103,6 +103,10 @@ depth_error <- function(depth, drange, percent=0.01, res=0.5){
 # diveSummary         Classify dive types and QC for postdive
 #------------------------------------------------------------------
 # Description: Classify dives into one of three simple dive shapes (Square, V, U)
+
+# modify by J. Menéndez-Blázquez for adding  mean depth information per each dive.
+
+
 diveSummary <- function(dcalib){
   
   library(akima)
@@ -146,8 +150,8 @@ diveSummary <- function(dcalib){
     # select TDR data within a dive 
     
     fdata <- filter(data, date >= t1 & date <= t2)
-    d <- fdata$depth#depths
-    t <- fdata$date# time (in seconds)
+    d <- fdata$depth # depths
+    t <- fdata$date # time (in seconds)
     
     #xout <- seq(t1,t2,60)# time sequence to predict
     xout <- seq(t1,t2,by="15 sec")
@@ -160,6 +164,11 @@ diveSummary <- function(dcalib){
     botstart <- xout[bottom[1]]  # first time where depth is > than bottom depth
     botend <- xout[bottom[length(bottom)]] # last time where depth is > than bottom depth
     diveDF$botttim[i] <- botend-botstart # duration of the bottom time
+    
+    # add mean depth information per each dive
+    diveDF$meandep[i] <- mean(fdata$depth, na.rm = TRUE)
+    
+    
     
     # dive type
     if (diveDF$botttim[i] > diveDF$divetim[i]*0.5) diveDF$dtype[i] <- "S"
@@ -208,6 +217,7 @@ diveSummary <- function(dcalib){
   
   
   # Reorder with dive.id as first column
+  
   diveDF <- diveDF %>%
     dplyr::select(dive.id, dtype, pdd, pdd_qc, everything())
   

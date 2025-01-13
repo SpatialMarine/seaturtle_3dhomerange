@@ -12,7 +12,7 @@
 # based in Sequeira et al., 2021
 
 # also add daynight info for each dive based into 
-
+# add mean depth per each dive
 
 
 #---------------------------------------------------------------
@@ -86,7 +86,7 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
   # select variables
   # note: divetime (== dive duration in seconds)
   df <- dplyr::select(dive_sum, dive.id, longitude, latitude, begdesc, endasc, divetim,
-                      pdd, pdd_qc, maxdep, depth_upper_error, depth_lower_error, dtype, z.error, xy.error)
+                      pdd, pdd_qc, maxdep, meandep, depth_upper_error, depth_lower_error, dtype, z.error, xy.error)
   
   # add daynight information and moon bright and phases
   df$daynight <- daynight(lon = df$longitude, lat = df$latitude, time = df$begdesc)
@@ -106,6 +106,16 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
   df$moon_bright <- moon$fraction
   df$moon_phase  <- moon$phase
   
+  # reclass moon information
+  # 0-1 moon bright reclassification: Bright, Medium, Dark (based on Horton et al., 2025)
+  df$moon_bright_class <- cut(
+    df$moon_bright,
+    breaks = c(0, 0.3, 0.6, 1),
+    labels = c("dark","medium","bright"),
+    include.lowest = TRUE
+  )
+  
+
   # add id
   df <- cbind(organismID, df)
   
@@ -115,7 +125,7 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
 }
 
 
-Sys.time()-t
+Sys.time() - t
 cat("Processing dives finished")
 
 stopCluster(cl)
