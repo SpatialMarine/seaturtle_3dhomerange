@@ -26,12 +26,16 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
                "rnaturalearthhires", "maptools", "suntools", "raster", #spatial
                "suncalc",
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
-               "rgl", "plot3D", "plotly","plot3Drgl", # 3D visualization
+               "rgl", "plot3D", "plotly","plot3Drgl", "ggsvg", # 3D visualization
                "diveMove", # process dive tracking data
                "ggplot2", "gridExtra", "grid", #plot
                "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
 
-library(diveMove)
+# # instal remotes repositories
+remotes::install_github('coolbutuseless/svgparser')
+remotes::install_github('coolbutuseless/ggsvg')
+
+
 # packages notes:
 # · sfnetworks is required by pathroutr package
 # · nabor

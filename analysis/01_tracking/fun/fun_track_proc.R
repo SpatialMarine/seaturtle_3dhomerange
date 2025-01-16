@@ -426,23 +426,54 @@ timedif.segment <- function(x, thrs){
 
 # -------------------------------------------------------------------------------
 
+# get_season        return season based on a specific date
+
 # -------------------------------------------------------------------------------
 
-# for north hemisphere
-# get seassons
+# Define los rangos de estaciones
 get_season <- function(date) {
-  year <- format(date, "%Y")
-  winter_start <- as.Date(paste0(year, "-12-21"))
-  winter_end <- as.Date(paste0(as.numeric(year) + 1, "-03-20"))
-  spring_start <- as.Date(paste0(year, "-03-21"))
-  spring_end <- as.Date(paste0(year, "-06-20"))
-  summer_start <- as.Date(paste0(year, "-06-21"))
-  summer_end <- as.Date(paste0(year, "-09-20"))
-  autumn_start <- as.Date(paste0(year, "-09-21"))
-  autumn_end <- as.Date(paste0(year, "-12-20"))
   
-  ifelse(date >= winter_start | date <= winter_end, "winter",
-         ifelse(date >= spring_start & date <= spring_end, "spring",
-                ifelse(date >= summer_start & date <= summer_end, "summer",
-                       "autumn")))
+  if (class(date) != "Date") {
+    print("Dates not POSIXct or ct format class")
+    NULL
+  } else {
+    
+    y <- year(date)
+    # Crear fechas con el año específico
+    spring_start <- paste0(y, "-03-21")
+    summer_start <- paste0(y, "-06-21")
+    autumn_start <- paste0(y, "-09-23")
+    winter_start <- paste0(y, "-12-21")
+    
+    # Convertir las fechas de inicio en formato Date para compararlas
+    spring_start <- as.Date(spring_start)
+    summer_start <- as.Date(summer_start)
+    autumn_start <- as.Date(autumn_start)
+    winter_start <- as.Date(winter_start)
+    
+    # Comparar la fecha y asignar estación
+    if (date >= spring_start & date < summer_start) {
+      return("spring")
+    } else if (date >= summer_start & date < autumn_start) {
+      return("summer")
+    } else if (date >= autumn_start & date < winter_start) {
+      return("autumn")
+    } else {
+      return("winter")
+    }
+    
+    
+  }
+  
 }
+  
+
+
+# apply custom function to every record in the df
+# df$season <- sapply(df$date, get_season)
+
+
+
+
+
+

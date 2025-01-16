@@ -9,7 +9,7 @@ editor: visual
 
 *From locations and temperature-deprth records loggers*
 
-Locations (l`oc`)
+**Locations** (l`oc`)
 
 -   `L0` - standardized data (following Sequeira et al., 2021 fields nomenclature)
 
@@ -19,7 +19,7 @@ Locations (l`oc`)
 
 -   `L3` - Pre processed L2 files in order to conduct 3D analysis (calculate position errors)
 
-Temperature-depth recorder (`ttdr`)
+**Temperature-depth recorder** (`ttdr`)
 
 -   `L0` - standardized data
 
@@ -39,13 +39,15 @@ Temperature-depth recorder (`ttdr`)
 
 -   `L3` - post-processing **L1\*** for adding night/day position (as well as dusk time), xy.error and z-error Confidence intervals (CI) for predicted loc positions (SSM)
 
-Dives (dive) - Summary the ttdr data into different dives
+**Dives** (dive) - Process and summary the `ttdr` data and `dcalib` files (from `diveMove` package) into different dives
 
 -   output \_dives.csv
 
 -   Add `daynight` information based in descend beginning (`begdesc`)
 
--   Add moon fase and light (bright) for each immersion (Lunar illumination was extracted for each discrete time point using the `getMoonIllumination` function in the `suncalc` package)
+-   Add moon phase and light (bright) for each immersion (Lunar illumination was extracted for each discrete time point using the `getMoonIllumination` function in the `suncalc` package)
+
+-   Add mean depth per each dive
 
 Values such as `lat.025`, `lat.975,` `lon.025`, `lon.975` refer to confidence intervals (CI) ranging from 2.5% to 97.5% for the latitude coordinates (and similarly for longitude).
 

@@ -125,7 +125,7 @@ foreach(i=1:length(ttdr_files), .packages=c("dplyr", "stringr", "lubridate", "di
 }
 
 
-Sys.time() - t
+Sys.time() - t # 15 min aprox (16 gb, 6 cores)
 cat("Processing dives finished")
 
 stopCluster(cl)
