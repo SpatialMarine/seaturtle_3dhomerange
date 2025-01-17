@@ -267,7 +267,7 @@ getSST <- function(data){
                 !is.na(depth)) # select data with depth information
   
   ## Select fields
-  sst <- dplyr::select(sst, id, time, depth_adjusted, depth_upper_error, depth_lower_error, temperature, temp_error, temperature_qc1)
+  sst <- dplyr::select(sst, organismID, time, depth_adjusted, depth_upper_error, depth_lower_error, temperature, temp_error, temperature_qc1)
   return(sst)
 }
 #--------------------------------------------------------------------------------

@@ -28,6 +28,15 @@
 
 
 
+# 0. load functions
+# tracking functions paths
+funs <- list.files("analysis/01_tracking/fun/", pattern = "\\.R$", full.names = TRUE)
+# read .R scripts with source
+sapply(funs, source)
+
+
+
+
 #---------------------------------------------------------------
 # 1. Set data repositories
  
@@ -59,7 +68,6 @@ metadata <- metadata[!(metadata$organismID %in% ids), ]
 
 #---------------------------------------------------------------
 # 3. Process TTDR
-
 
 # cores <- detectCores() - 2
 # cl <- makeCluster(cores)
@@ -139,7 +147,8 @@ for (i in 1:nrow(metadata)){
   
   dcalib <- diveMove::calibrateDepth(tdrdata,
                                     wet.thr = 3610,   # (seconds) At-sea phases shorter than this threshold will be considered as trivial wet.Delete periods of wet activity that are too short to be compared with other wet periods.
-                                    dive.thr = 3,     # (meters) threshold depth below which an underwater phase should be considered a dive.
+                                    dive.thr = 8,     # (meters) threshold depth below which an underwater phase should be considered a dive.
+                                    # note: dive.thr could make some problems with values under 8 (It was commented to the developmenter of the packages)
                                     zoc.method = "filter",   # see Luque and Fried (2011)
                                     k = c(12, 240),   # (60 and 1200 minutes) Vector of moving window width integers to be applied sequentially.
                                     probs = c(0.5, 0.05),    # Vector of quantiles to extract at each step indicated by k (so it must be as long as k)
@@ -271,7 +280,7 @@ for (i in 1:nrow(metadata)){
   # Step 8. Add day/night information per position and timestamp
   ttdr$daynight <- daynight(lon = ttdr$longitude, lat = ttdr$latitude, time = ttdr$time)
   
-  ttdr <- ttdr %>% rename(organismID = id)
+  # ttdr <- ttdr %>% rename(organismID = id)
   #-------------------------------
   # save / export data
   output_data <- paste0(input_dir,"/tracking/ttdr/L1")
@@ -281,6 +290,7 @@ for (i in 1:nrow(metadata)){
   write.csv(ttdr, ttdr_file, row.names = FALSE)
 }
 
+Sys.time() - t # process ttdr
 
 
 
@@ -385,7 +395,7 @@ write.csv(df, out_file, row.names = FALSE)
 
 # -----------------------------------------------------------------------------
 
-t - Sys.time() # 2:20 hours apróx
+t - Sys.time() # 2:20 hours aprox.
 
 # stopCluster(cl) # Stop cluster
 print("Process TTDR data finished - L0, L1 and L2 processing levels")

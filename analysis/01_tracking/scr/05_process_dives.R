@@ -26,7 +26,6 @@ sapply(funs, source)
 
 
 # 1. Set data repository
-
 input_data <- paste0(input_dir,"/tracking/ttdr/L3")
 output_data <- paste0(input_dir,"/tracking/dives")
 if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
@@ -40,7 +39,6 @@ ttdr_files <- list.files(input_data, full.names=TRUE, pattern = "_L3_ttdr.csv")
 
 #---------------------------------------------------------------
 # 3. Process  files
-
 cores <- detectCores() - 2
 cl <- makeCluster(cores)
 registerDoParallel(cl)

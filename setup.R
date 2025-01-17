@@ -17,23 +17,26 @@ cpu <- "jmb"
 # install.packages("pathroutr", repos = "https://jmlondon.r-universe.dev", dependencies = TRUE)
 
 
-
 # Load required packages
 pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", 
                "reshape2", "tools", "purrr", # data manipulation
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
                "rnaturalearthhires", "maptools", "suntools", "raster", #spatial
-               "suncalc",
+               "suncalc", # enviromental variables
+               "gfwr", # For Global Fishing Watch API
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
                "rgl", "plot3D", "plotly","plot3Drgl", "ggsvg", # 3D visualization
                "diveMove", # process dive tracking data
                "ggplot2", "gridExtra", "grid", #plot
                "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
 
-# # instal remotes repositories
-remotes::install_github('coolbutuseless/svgparser')
-remotes::install_github('coolbutuseless/ggsvg')
+# instal remotes repositories
+# remotes::install_github('coolbutuseless/svgparser')
+# remotes::install_github('coolbutuseless/ggsvg')
+
+# Global Fishing Watch (GFW)
+# devtools::install_github("GlobalFishingWatch/gfwr")
 
 
 # packages notes:
@@ -45,7 +48,6 @@ locale <- "en_US.UTF-8"
 
 # ------------------------------------------------------------------------------
 # 1. Set main data paths ---------
-
 if(cpu == "jmb") main_dir <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/",project)
 if (!dir.exists(main_dir)) dir.create(main_dir, recursive = TRUE)
 
@@ -61,3 +63,7 @@ output_dir <- paste(main_dir, "output", sep="/")
 if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 
 
+# ------------------------------------------------------------------------------
+# 3. Global Fishing Watch API key
+if(cpu == "jmb")   f <- "C:/Users/J. Menéndez Blázquez/Desktop/R/gfw_api/gfw_api.txt"
+key <- paste(readLines(f, warn = FALSE), collapse = "")
