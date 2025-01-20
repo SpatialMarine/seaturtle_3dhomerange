@@ -1,6 +1,6 @@
 ---
-title: "fishing_proces_readme"
-author: "jmenblaz"
+title: "3D_fishing_proces_readme"
+author: "jmenblaz - Javier Menéndez-Blázquez"
 format: html
 editor: visual
 ---
@@ -13,7 +13,13 @@ editor: visual
 
 -   *"organismID_3d_fishing-effort_vol.tif"* - RasterStack with volumes of the fishing effort from 0-1 (1 means the maximum effort, and means all the volume occupied)
 
-## Fishing effort 3D processing
+## 1- Fishing effort data-set 
+
+Global Fishing Watch was used as a open-source fishing effort (hours) data to extract the fishing activities in the study area. In that case we used the mean of fishing effort for 12 years, from 2012 to 2024 (<https://globalfishingwatch.org/dataset-and-code-fishing-effort/>). (`raw` files)
+
+The yearly mean fishing effort for all this period has been used as a input for the fishing 3D processing and analysis presented here. A Geotiff file are provided by fishing gear type of interest at 0.1º of resolution (\~ 10x10 km) for the study area. Also, a `.csv` and `png` files are generated during this process.
+
+## 2- Fishing effort 3D processing
 
 From 2D fishing effort to 3D using a specific metier or fishing gear / art specific depth.
 
@@ -21,7 +27,7 @@ Media anual de valores de pesca (1x1 Km^2^): GMTDS, Global Fishing Watch
 
 1\) Se han eliminado outliers o valores de pixel superiores al 95% para delimitar zonas portuarias dado que los valores de esfuerzo pesquero vienen dados por AIS
 
-## Fishing effort 3D
+## 3- Fishing effort 3D
 
 Para calcular el volumen ocupado por la actividad pesquera en cada tramo de profundidad se han obtenido todos los valores de esfuerzo pesquero del área (salvo aquellos \> al 95% de los datos) y se han resampleado en una escala de 0-1 (con 1 siendo el máximo de esfuerzo). Esto se ha realizado para poder calcular el esfuerzo peaquero como si fuese Utilization distribution (UD) como el resultado de un Kernel. Con dicho valores se ha podido calcular el volumen ocupado en función del esfuerzo de pesca para cada voxel gracias a las función `volumeUD` del paquete `fishtrack3D`
 

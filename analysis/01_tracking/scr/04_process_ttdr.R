@@ -1,5 +1,5 @@
 #--------------------------------------------------------------------------------
-# 04_process_ttdr.R
+# 04_process_ttdr.R - tracking analysis
 #--------------------------------------------------------------------------------
 
 # Process pressure and temperature data from WC tags configured using time series
@@ -61,9 +61,9 @@ metadata$deploymentDateTime <- as.Date(metadata$deploymentDateTime, origin="1899
 
 
 # avoid ids with processing issues
-ids <- c(200043, 200045, 235396)
+# ids <- c(200043, 200045, 235396)
 # filter data 
-metadata <- metadata[!(metadata$organismID %in% ids), ]
+# metadata <- metadata[!(metadata$organismID %in% ids), ]
 
 
 #---------------------------------------------------------------

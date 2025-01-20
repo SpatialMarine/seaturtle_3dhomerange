@@ -1,6 +1,6 @@
 
 #--------------------------------------------------------------------------------
-# 05_process_dives.R
+# 05_process_dives.R - tracking analysis
 #--------------------------------------------------------------------------------
 
 #' This script use the postprocess L1 ttdr data to obtain differenrt dives for
