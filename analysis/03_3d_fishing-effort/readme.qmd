@@ -13,7 +13,7 @@ editor: visual
 
 -   *"organismID_3d_fishing-effort_vol.tif"* - RasterStack with volumes of the fishing effort from 0-1 (1 means the maximum effort, and means all the volume occupied)
 
-## 1- Fishing effort data-set 
+## 1- Fishing effort data-set
 
 Global Fishing Watch was used as a open-source fishing effort (hours) data to extract the fishing activities in the study area. In that case we used the mean of fishing effort for 12 years, from 2012 to 2024 (<https://globalfishingwatch.org/dataset-and-code-fishing-effort/>). (`raw` files)
 

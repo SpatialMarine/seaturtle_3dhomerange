@@ -19,11 +19,10 @@ library(raster)
 # geojson files
 library(jsonlite)
 
-
 # remote install gfwr R package (see setup.R)
 # Global Fishing Watch
 library(gfwr)
-
+library(paletteer)
 
 # 0) ------------------------------------------------------------------------------
 # APY key for GFW 
@@ -180,9 +179,9 @@ write.csv(summary, file, row.names = F)
 # colRamp
 # https://github.com/jmenblaz/colRamps/tree/main/thematic
 
-library(RColorBrewer)
-# custom color ramp for fishing effort
-colRamp <- colorRampPalette(c('#6CA6CD','#B0E2FF','#FFFACD','#FFEC8B','#FFA07A','#8B3626', '#130705'))(50)
+
+# paletteer_c("grDevices::PuBu", 30)
+# color_ramp <- rev(as.character(paletteer::paletteer_c("grDevices::Oslo", 20)))
 
 
 # trawlers, drifting_longlines
@@ -217,19 +216,23 @@ for (f in files){
     coord_sf(xlim = c(ext@xmin, ext@xmax), 
              ylim = c(ext@ymin, ext@ymax), 
              expand = FALSE) +  # Elimina los bordes extra
-    
     # extent + # used for used extent object directly
+    
+    # ramp color 
+    # scale_fill_gradientn(colors = color_ramp, trans = "log10", 
+    #                      name = "Fishing effort (Hours)") +
+    scale_fill_viridis_c(option = "F", trans="log10",
+                         # dark legend border or guidebar
+                         guide = guide_colorbar(frame.colour = "grey5", 
+                                                ticks.colour = "grey5")) +
     # theme
     theme_bw() +
-    # Use a viridis color scale with log transformation
-    scale_fill_viridis_c(option = "F", trans="log10") +
-  
     # Customize legend and axis titles
     labs(fill = "Fishing effort (Hours)",  # legend title
     ) +
     
     theme_bw() +
-    theme(panel.background = element_rect(fill = "#19212C"), # change the color of sea in this case
+    theme(panel.background = element_rect(fill = "#1e2632"), # change the color of sea in this case
           panel.border = element_rect(color = "grey5", fill = NA, linewidth = 1.1),
           panel.grid = element_blank(),
           # axis
@@ -239,16 +242,17 @@ for (f in files){
           axis.ticks = element_line(size = 0.75),
           axis.ticks.length = unit(6, "pt"),  # negative lenght -> ticks inside the plot
           # legend
-          legend.title = element_text(size = 9),
-          legend.text = element_text(size = 8.5)
+          legend.title = element_text(size = 9, margin = margin(b = 8.5)),
+          legend.text = element_text(size = 8.5),
           )
   
-  p
+  # p
   
   # export plot as png:
   p_png <- paste0(input_dir,"/gfw/",gear_type,"_fishing_effort_summary.png")
-  ggsave(p_png, p, width=23, height=18, units="cm", dpi=350)
-  
+  p_svg <- paste0(input_dir,"/gfw/",gear_type,"_fishing_effort_summary.svg")
+  ggsave(p_png, p, width=23, height=11, units="cm", dpi=350)
+  # ggsave(p_svg, p, width=23, height=18, units="cm", dpi=350)
   
   
   # 4.2) export as raster layer / file ----------------------------http://127.0.0.1:9825/graphics/plot_zoom_png?width=1136&height=744
