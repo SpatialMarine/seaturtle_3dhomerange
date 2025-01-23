@@ -20,6 +20,8 @@
 # path
 source("setup.R")
 source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d process
+source("analysis/02_3d_process/fun/fun_fishtrack3d.R") # functions for fishtrack3D R package
+source("analysis/02_3d_process/fun/fun_ks3d.R") 
 
 # Load libraries
 library(mkde)
@@ -39,7 +41,6 @@ ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names 
 # mkde3d         Calculate 3D volumnes using mkde package
 
 #' commons inputs @params for mkde::functions()
-
 t.max = 250
 integration.step = 5
 voxel.xsize = 10000
@@ -92,6 +93,22 @@ for (i in 1:length(ttdr_files)) {
   # import locs and ttdr data for this organismID or ptt ----------------------
   ttdr <- paste0(main_dir,"/input/tracking/ttdr/L3/",organismID,"_L3_ttdr.csv")
   ttdr <- read.csv(ttdr, dec=",", head=TRUE)
+  
+  # Note: filtering locations for organismIDs 151934 and 200045
+  # within the study area in western mediterranean
+  if (organismID == "151934" | organismID == "200045") {
+    # load study area
+    area <- st_read(paste0(input_dir,"/gis/study_area.geojson"))
+    # bounding box
+    bbox <- st_bbox(area)
+    # filter ttdr locations
+    ttdr <- ttdr %>% filter(latitude >= bbox["ymin"], latitude <= bbox["ymax"],
+                            longitude >= bbox["xmin"], longitude <= bbox["xmax"])
+    # info
+    cat("   · Filtered position by study area (OrganismID:",organismID,") \n")
+  }
+  
+  
   # parse / format time date for ttdr data  and convert numeric fields:
   ttdr$time <- lubridate::parse_date_time(ttdr$time, "Ymd HMS")
   ttdr <- ttdr |> mutate(across(c(latitude, longitude, x, y,
@@ -99,7 +116,7 @@ for (i in 1:length(ttdr_files)) {
                                   depth, depth_adjusted, 
                                   drange, 
                                   xy.error, z.error), as.numeric))
-
+  
   # select subset of day and night by organismID
   day <- ttdr[ttdr$daynight=="day",]
   night <- ttdr[ttdr$daynight=="night",]
@@ -108,15 +125,15 @@ for (i in 1:length(ttdr_files)) {
   # ------------------------------------------------------------------------------
   ## Processing DAY data   --------------------------------------------------------
   message("Processing DAY ttdr data")
-
+  
   x = day$x
   y = day$y
   z = as.numeric(day$depth_adjusted)
   date = day$time
   z_error = day$z.error ## changed to avoid overwriting function name
   xy_error = day$xy.error ##changed to avoid overwriting function name
-
-
+  
+  
   ##  variables to include in results parameter table --------------------------
   # Note: column names are different for z error in ttdr vs. ssm
   # general information about the diving data
@@ -126,8 +143,8 @@ for (i in 1:length(ttdr_files)) {
   avgdepth <- mean(day$depth_adjusted, na.rm = T) 
   day$yday <- yday(day$time) # number of day for a year
   days.tracked <- length(unique(day$yday)) 
-
-
+  
+  
   #---------------------------------------
   # Initialize a movement data list
   #---------------------------------------
@@ -205,18 +222,18 @@ for (i in 1:length(ttdr_files)) {
   #---------------------------------------------------------
   
   kde_3d_res <- data.frame(organismID = organismID,
-                         day.night = "day",
-                         volume.50 = res$volume[res$prob == 0.50],
-                         volume.75 = res$volume[res$prob == 0.75],
-                         volume.95 = res$volume[res$prob == 0.95],
-                         threshold.50 = res$threshold[res$prob == 0.50],
-                         threshold.75 = res$threshold[res$prob == 0.75],
-                         threshold.95 = res$threshold[res$prob == 0.95],
-                         mean.xy.error = mean.xy.error,
-                         mean.z.error = mean.z.error, 
-                         avgdepth = avgdepth,
-                         days.tracked = days.tracked,
-                         use.obs.mkde = use.obs)
+                           day.night = "day",
+                           volume.50 = res$volume[res$prob == 0.50],
+                           volume.75 = res$volume[res$prob == 0.75],
+                           volume.95 = res$volume[res$prob == 0.95],
+                           threshold.50 = res$threshold[res$prob == 0.50],
+                           threshold.75 = res$threshold[res$prob == 0.75],
+                           threshold.95 = res$threshold[res$prob == 0.95],
+                           mean.xy.error = mean.xy.error,
+                           mean.z.error = mean.z.error, 
+                           avgdepth = avgdepth,
+                           days.tracked = days.tracked,
+                           use.obs.mkde = use.obs)
   
   ##------------------------------------------------------------------------------------------------------------------------------##
   ## Save objects for further plotting / analysis
@@ -242,38 +259,38 @@ for (i in 1:length(ttdr_files)) {
   save(mkde.obj, file = mkdeobjfile)
   save(day, file = finalttdrfile)
   save(kde_3d_res, file = resfile)
-  write.csv(kde_3d_res, paste0(kde_folder,"/",organismID,"_3d_res_day",".csv"), row.names = TRUE)
-
-
-
+  write.csv(kde_3d_res, paste0(kde_folder,"/",organismID,"_3d_res_day",".csv"), row.names = FALSE)
+  
+  
+  
   
   
   # ---------------------------------------------------------------------------------
   ## Processnig NIGHT data   --------------------------------------------------------
   message("Processing NIGHT ttdr data")
   
-
-
+  
+  
   night$depth_adjusted <- as.numeric(night$depth_adjusted)
-
+  
   x = night$x
   y = night$y
   z = as.numeric(night$depth_adjusted)
   date = night$time
   z_error = night$z.error ## changed to not overwrite function
   xy_error = night$xy.error  ## changed to not overwrite function
-
+  
   #---------------------------------------
   # Initialize a movement data list
   #---------------------------------------
-
+  
   # Location error variance in the xy dimension
   sig2obs <- xy_error^2
   sig2obs.z <- z_error^2
-
+  
   # Convert time stamps to elapsed minutes from first time
   time <- as.numeric(difftime(date, date[1], units="mins")) 
-
+  
   # Set up movement data
   # warning message is generated when a vector is used for the z dimension error, but it still works
   mv.dat <- initializeMovementData(t.obs = time, x.obs = x, y.obs = y, z.obs = z,
@@ -375,80 +392,82 @@ for (i in 1:length(ttdr_files)) {
   save(mkde.obj, file = mkdeobjfile)
   save(day, file = finalttdrfile)
   save(kde_3d_res, file = resfile)
-  write.csv(kde_3d_res, paste0(kde_folder,"/",organismID,"_3d_res_night",".csv"), row.names = TRUE)
- 
- }
+  write.csv(kde_3d_res, paste0(kde_folder,"/",organismID,"_3d_res_night",".csv"), row.names = FALSE)
+  
+}
 
 Sys.time() - t # 8 mins
 
-  
-  
 
+
+
+
+
+
+
+
+
+
+
+
+
+# -----------------------------------------------------------------------------
+# 3) Combine results and export              ---------------------------------
+
+# list results for all individuals
+files <- list.files(output_data, pattern = "_3d_res_day.csv", recursive = TRUE, full.names = TRUE)
+files <- files[grepl("/\\d+_3d_res_day\\.csv$", files)] # select only .csv with organismID in the name (for future changes)
+# combine csv into single one
+df <- files %>% 
+  purrr::map_df(read.csv)
+# save / export combined result for 3D kernel density estimation
+write.csv(df, paste0(output_data,"/kde_3d_res_day.csv"), row.names = FALSE)
+
+
+# list results for all individuals
+files <- list.files(output_data, pattern = "_3d_res_night.csv", recursive = TRUE, full.names = TRUE)
+files <- files[grepl("/\\d+_3d_res_night\\.csv$", files)] # select only .csv with organismID in the name (for future changes)
+# combine csv into single one
+df <- files %>% 
+  purrr::map_df(read.csv)
+# save / export combined result for 3D kernel density estimation
+write.csv(df, paste0(output_data,"/kde_3d_res_night.csv"), row.names = FALSE)
+
+
+
+
+# -----------------------------------------------------------------------------
+# 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
+
+# list results for all individuals for day
+files <- list.files(output_data, pattern = "_3dmkde_obj_day.rdata", recursive = TRUE, full.names = TRUE)
+
+for (f in files) {
+  # load 3D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_3dmkde_obj_day\\.rdata$", "", basename(f))
   
+  # output ascii file
+  ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_day_ascii.txt")
+  writeToGRASS(mkde.obj, ascii_file)
   
-  
-  
-  
-  
-  
-  
-  
-  
-  # -----------------------------------------------------------------------------
-  # 3) Combine results and export              ---------------------------------
-  
-  # list results for all individuals
-  files <- list.files(output_data, pattern = "_3d_res_day.csv", recursive = TRUE, full.names = TRUE)
-  # combine csv into single one
-  df <- files %>% 
-    purrr::map_df(read.csv)
-  # save / export combined result for 3D kernel density estimation
-  write.csv(df, paste0(output_data,"/kde_3d_res_day.csv"), row.names = TRUE)
-  
-  
-  # list results for all individuals
-  files <- list.files(output_data, pattern = "_3d_res_night.csv", recursive = TRUE, full.names = TRUE)
-  # combine csv into single one
-  df <- files %>% 
-    purrr::map_df(read.csv)
-  # save / export combined result for 3D kernel density estimation
-  write.csv(df, paste0(output_data,"/kde_3d_res_night.csv"), row.names = TRUE)
-  
-  
-  
-  
-  # -----------------------------------------------------------------------------
-  # 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
-  
-  # list results for all individuals for day
-  files <- list.files(output_data, pattern = "_3dmkde_obj_day.rdata", recursive = TRUE, full.names = TRUE)
-  
-  for (f in files) {
-    # load 3D mdke.obj
-    load(f)
-    # extract id from file
-    organismID <- sub("_3dmkde_obj_day\\.rdata$", "", basename(f))
-    
-    # output ascii file
-    ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_day_ascii.txt")
-    writeToGRASS(mkde.obj, ascii_file)
-    
-    #output VTK file
-    vtk_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_day.vtk")
-    writeToVTK(mkde.obj, vtk_file,
-               description=paste0(organismID," 3D MKDE day"))
-  }
-  
-  
-  
-  # list results for all individuals for night
-  files <- list.files(output_data, pattern = "_3dmkde_obj_night.rdata", recursive = TRUE, full.names = TRUE)
-  
-  for (f in files) {
-    # load 3D mdke.obj
-    load(f)
-    # extract id from file
-    organismID <- sub("_3dmkde_obj_night\\.rdata$", "", basename(f))
+  #output VTK file
+  vtk_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_day.vtk")
+  writeToVTK(mkde.obj, vtk_file,
+             description=paste0(organismID," 3D MKDE day"))
+}
+
+
+
+# list results for all individuals for night
+files <- list.files(output_data, pattern = "_3dmkde_obj_night.rdata", recursive = TRUE, full.names = TRUE)
+
+for (f in files) {
+  # load 3D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_3dmkde_obj_night\\.rdata$", "", basename(f))
     
     # output ascii file
     ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_night_ascii.txt")

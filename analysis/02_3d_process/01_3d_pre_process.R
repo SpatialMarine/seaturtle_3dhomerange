@@ -4,7 +4,7 @@
 # 01_3d_pre-process  3D Kernel density
 
 # By: Jessica Ruff and David March (2021) and,
-# update and standarized by Javier Menéndez-Bázquez | @jmenblaz
+# update and standarized by Javier Menéndez-Blázquez | @jmenblaz
 
 
 #-------------------------------------------------------------------------------------
@@ -17,7 +17,7 @@
 
 # · calculate vertical error in ttdr data
 # · calculate horizontal error in locs data
-# · reproject coordibates to metric system (from study area)
+# · reproject coordinates to metric system (from study area)
 # · filter out data with NA depth data
 
 
@@ -154,7 +154,7 @@ foreach(i=1:length(organismIDs), .packages=c("dplyr", "lubridate", "akima", "sp"
   
 }
 
-Sys.time() - t # 4 min
+Sys.time() - t # 4 min (6 cores)
 stopCluster(cl)
 
 # info 

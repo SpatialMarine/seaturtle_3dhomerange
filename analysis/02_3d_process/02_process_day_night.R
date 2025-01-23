@@ -38,9 +38,6 @@ daynight <- function (time, sunrise, sunset){
 
 ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names = TRUE, pattern = "L3_ttdr.csv")
 
-
-# 2) process 3D kde
-
 # t <- Sys.time()
 # 
 # cores <- detectCores() - 2
@@ -53,9 +50,9 @@ ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names 
 # pararell processing
 # foreach(ttdr = ttdr_files, .packages=c("dplyr", "raster", "suntools", "lubridate")) %dopar% {  
 
+t <- Sys.time()
 
-
-for (i in 1:length(ttdr_files)) { }
+for (i in 1:length(ttdr_files)) {
   
   ttdr <- ttdr_files[i]
   # extract organismID from L3_ttdr fiel name
@@ -69,10 +66,9 @@ for (i in 1:length(ttdr_files)) { }
   cat("\n")
   cat("\n")
   
-  
-  
+
   # read data
-  data <- read.csv(t, dec=",", head=TRUE)
+  data <- read.csv(ttdr, dec=",", head=TRUE)
   # parse / format time date for ttdr data and conver to numeric
   data$time <- lubridate::parse_date_time(data$time, "Ymd HMS")
   data <- data |> mutate(across(c(depth_upper_error, depth_lower_error, depth, drange), as.numeric))
@@ -127,12 +123,12 @@ for (i in 1:length(ttdr_files)) { }
   
 }
 
-Sys.time() - t # 5:30 min
-stopCluster(cl)
+Sys.time() - t # 16:30 min
+# stopCluster(cl)
   
 # info 
 cat("- 3D pre-process completed - \n
-         -- L3 TTDR and Locations data processed")
+         -- L3 TTDR day and night info added")
 message("\n")
 message("\n")
 

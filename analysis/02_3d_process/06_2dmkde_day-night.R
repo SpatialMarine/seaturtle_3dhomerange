@@ -22,6 +22,7 @@
 # path
 source("setup.R")
 source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d process
+source("analysis/02_3d_process/fun/fun_fishtrack3d.R")
 
 # Load libraries
 library(mkde)
@@ -33,7 +34,6 @@ library(raster)
 
 # 1) list ttdr L3 files
 ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names = TRUE, pattern = "L3_ttdr.csv")
-
 
 
 # ------------------------------------------------------------------------------
@@ -95,6 +95,24 @@ for (i in 1:length(ttdr_files)) {
   # import locs and ttdr data for this organismID or ptt ----------------------
   ttdr <- paste0(main_dir,"/input/tracking/ttdr/L3/",organismID,"_L3_ttdr.csv")
   ttdr <- read.csv(ttdr, dec=",", head=TRUE)
+  
+  
+  # Note: filtering locations for organismIDs 151934 and 200045
+  # within the study area in western mediterranean
+  if (organismID == "151934" | organismID == "200045") {
+    # load study area
+    area <- st_read(paste0(input_dir,"/gis/study_area.geojson"))
+    # bounding box
+    bbox <- st_bbox(area)
+    # filter ttdr locations
+    ttdr <- ttdr %>% filter(latitude >= bbox["ymin"], latitude <= bbox["ymax"],
+                            longitude >= bbox["xmin"], longitude <= bbox["xmax"])
+    # info
+    cat("   · Filtered position by study area (OrganismID:",organismID,") \n")
+  }
+  
+  
+  
   # parse / format time date for ttdr data  and convert numeric fields:
   ttdr$time <- lubridate::parse_date_time(ttdr$time, "Ymd HMS")
   ttdr <- ttdr |> mutate(across(c(latitude, longitude, x, y,
@@ -213,7 +231,7 @@ for (i in 1:length(ttdr_files)) {
   save(mkde.obj, file = mkdeobjfile)
   save(ttdr, file = finalttdrfile)
   save(kde_2d_res, file = resfile)
-  write.csv(kde_2d_res, paste0(output_data,"/",organismID,"_2d_res_day",".csv"), row.names = TRUE)
+  write.csv(kde_2d_res, paste0(kde_folder,"/",organismID,"_2d_res_day",".csv"), row.names = FALSE)
 
 
 
@@ -324,12 +342,12 @@ for (i in 1:length(ttdr_files)) {
   save(mkde.obj, file = mkdeobjfile)
   save(ttdr, file = finalttdrfile)
   save(kde_2d_res, file = resfile)
-  write.csv(kde_2d_res, paste0(output_data,"/",organismID,"_2d_res_night",".csv"), row.names = TRUE)
+  write.csv(kde_2d_res, paste0(kde_folder,"/",organismID,"_2d_res_night",".csv"), row.names = FALSE)
   
 
 }
 
-Sys.time() - t # 1 min
+Sys.time() - t # 2 min
 
 
 
@@ -338,20 +356,22 @@ Sys.time() - t # 1 min
 
 # list results for all individuals
 files <- list.files(output_data, pattern = "_2d_res_day.csv", recursive = TRUE, full.names = TRUE)
+files <- files[grepl("/\\d+_2d_res_day\\.csv$", files)] # select only .csv with organismID in the name (for future changes)
 # combine csv into single one
 df <- files %>% 
   purrr::map_df(read.csv)
 # save / export combined result for 3D kernel density estimation
-write.csv(df, paste0(output_data,"/kde_2d_res_day.csv"), row.names = TRUE)
+write.csv(df, paste0(output_data,"/kde_2d_res_day.csv"), row.names = FALSE)
 
 
 # list results for all individuals
 files <- list.files(output_data, pattern = "_2d_res_night.csv", recursive = TRUE, full.names = TRUE)
+files <- files[grepl("/\\d+_2d_res_night\\.csv$", files)] # select only .csv with organismID in the name (for future changes)
 # combine csv into single one
 df <- files %>% 
   purrr::map_df(read.csv)
 # save / export combined result for 2d kernel density estimation
-write.csv(df, paste0(output_data,"/kde_2d_res_night.csv"), row.names = TRUE)
+write.csv(df, paste0(output_data,"/kde_2d_res_night.csv"), row.names = FALSE)
 
 
 

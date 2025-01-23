@@ -1,0 +1,10 @@
+---
+title: "modelling_3D_homerange"
+author: "jmenblaz"
+format: html
+editor: visual
+---
+
+## Sea turtle 2D/3D Home range modelling
+
+Two sea turtles (`organismID`: **151934** and **200045**) had tagged ranges that exceeded the study area, which was defined based on the range of the other 26 sea turtles. Therefore, in the scripts `03_3dmkde.R` and `04_2dmkde.R` (as well as the day/night analysis) their locations were filtered to include only those derived from this satellite and the corresponding dive positions within the study area, primarily occupying the Algerian Basin in the Western Mediterranean Sea.

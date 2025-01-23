@@ -197,7 +197,7 @@ for (f in files){
 
   # Make zoomed in map 
   # land mask
-  world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+  world <- rnaturalearth::ne_countries(scale = "large", returnclass = "sf")
   
   # Bounding box if you rather setting it to the raster limits:
   extent <- coord_sf(xlim = c(min(fishingEffort$Lon), max(fishingEffort$Lon)), 
