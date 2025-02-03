@@ -530,9 +530,7 @@ compThresholds <- function(raster_stack, prob) {
 # or calculate the entire volume of the rasterstack whitout usig a specific value
 
 
-# threshold value
-# not use probability
-
+# threshold value, not use probability
 # threshold = res$threshold.95 # valor umbral del threshold... no la probabilidad
 
 calculate_vol_stack <- function(raster_stack, threshold = NULL, z) {

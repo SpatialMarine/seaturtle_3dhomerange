@@ -35,6 +35,9 @@ library(raster)
 ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names = TRUE, pattern = "L3_ttdr.csv")
 
 
+# raster/voxel area size (meters) 10000 = 10x10 km
+# use 5x5 pixel to more accuracy results in fishing overlap
+size = 5000
 
 # ------------------------------------------------------------------------------
 # 2) process 3D Kernel Density Stimation (3d kde) using mkde package from animal movement
@@ -43,10 +46,10 @@ ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names 
 #' commons inputs @params for mkde::functions()
 t.max = 250
 integration.step = 5
-voxel.xsize = 10000
-voxel.ysize = 10000
+voxel.xsize = size
+voxel.ysize = size
 voxel.zsize = 10
-extend.raster = 10000
+extend.raster = size
 zll = 0
 crs = "+init=epsg:3035"
 contours = c(0.50, 0.75, 0.95)

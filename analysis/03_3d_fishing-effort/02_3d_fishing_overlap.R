@@ -7,15 +7,13 @@
 
 
 
-# 1) load importa data 
+# 1) load / import data 
 # 2) process 3D overlap between fishing effort data and kde organism ID processed 
 #   - 2.1 Load data for processing - kde and fishing effort 
 #   - 2.2 Calculate the 3D overlap ------------------------------------------
 #   - 2.3 Calculate the 3D overlap volumes  ---------------------------------
 
 # ------------------------------------------------------------
-
-
 
 # 0) Load libraries -----
 library(mkde)
@@ -24,15 +22,21 @@ library(raster)
 source("setup.R")
 source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d process
 
+
 # -----------------------------------------------------------------------
-
-
 
 # 1) load importa data ----------------------------------------------------
 # kde 3D results
 kde_files <- list.files(paste0(main_dir,"/output/01_kde_3d/"), full.names = TRUE, pattern = "_3dmkde_obj_rstack.tif", recursive = TRUE)
+# note: volumes in m3
 kde_res <- read.csv(paste0(main_dir,"/output/01_kde_3d/kde_3d_res.csv"))
+# transform to km3
+kde_res$volume.50.km3 <- kde_res$volume.50/1000000000
+kde_res$volume.75.km3 <- kde_res$volume.75/1000000000
+kde_res$volume.95.km3 <- kde_res$volume.95/1000000000  
 
+# different fishing gears (see 01_3d_fishing-overlap.R)
+fishing_gears <- c("LL","TW")  # create a chr chain
 
 
 # ------------------------------------------------------------------------------
@@ -61,16 +65,16 @@ for (i in 1:length(kde_files)) { }
   cat(" · organismID:", organismID, "\n")
   
   # load kde result from mkde 3d functions process
-  # note: volumes in m3
+  # note: volumes in km3, transfortmed previously
   kde_res_id <- kde_res %>% filter(kde_res$organismID == !!organismID)
-  
   
   # load 3D kde (rasterstack)
   kde <- raster::stack(kde)
   crs(kde) <- CRS("EPSG:3035")  # add CRS
   names(kde) <- paste("layer", 1:nlayers(kde), sep = ".")  # rename layers
   
-  # values 0 as NA
+  # values 0 as NA in RasterStack
+  # double check, implemented before
   kde <- calc(kde, fun = function(x) { 
     x[x == 0] <- NA
     return(x)
@@ -79,8 +83,12 @@ for (i in 1:length(kde_files)) { }
   # min(values(kde), na.rm = TRUE)
   # plot(kde)
 
+  for (g in 1:length(fishing_gears)) {}
+  # select fishing gear
+  fishing_gear <- fishing_gears[g]
+  
   # load fishing data
-  fishing <- raster::stack(paste0(main_dir,"/output/03_fishing_3d/",organismID,"_3d_fishing-effort.tif"))
+  fishing <- raster::stack(paste0(main_dir,"/output/03_fishing_3d/",organismID,"_3d_fishing-effort_",fishing_gear,".tif"))
   crs(fishing) <- CRS("EPSG:3035")  # add CRS
   names(fishing) <- paste("layer", 1:nlayers(kde), sep = ".")  # rename layers
   plot(fishing)
@@ -94,15 +102,16 @@ for (i in 1:length(kde_files)) { }
   
   # 2.1) calculate interaction between kde and fishing effort
   # multiply kde and fishing effort values to identify areas with high impact
+  # high impact = high kde values and high fishing effort
   fishing_interact <- kde * fishing
     plot(fishing_interact)
   
-  # raster2 used as mask in mask()
+  # 2.2) fishing used as mask in raster::mask()
   # logic: remove voxels where there are fishing impact in order to calculate 
-  # the remaining volume 
-  # result is the volumen affects by fishing activities 
-  # (in neceesary to calculate the difference between total volume or with threshold)
-  kde_fishing_intersect <- raster::mask(kde, fishing)  # provide the volume of the impact
+  #   - result: is the volumen affects by fishing activities 
+  # (is necessary to calculate the difference between total volume or with threshold)
+
+  kde_fishing_intersect <- raster::mask(kde, fishing)  # provide the UD volume of the impact
     plot(kde_fishing_intersect)
     
   # kde without fishing area of impact(simetrical diference)
@@ -110,32 +119,38 @@ for (i in 1:length(kde_files)) { }
     plot(kde_fishing_simdif)
   
     
-  
   # 3) calculate the 3D overlap volumes  ---------------------------------
-    
   threshold.95 <- kde_res_id$threshold.95  
   threshold.75 <- kde_res_id$threshold.75
   threshold.50 <- kde_res_id$threshold.50
   
   z = 10 # depth meters per layer
-  volume.95 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.95)
+  # calculate_vol_stacl (custom function in: fun_3d_utils.R)
+  # volumes in m3
+  volume.95 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.95) 
   volume.75 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.75)
   volume.50 <- calculate_vol_stack(kde_fishing_simdif, z = z, threshold.50)
   
-  # UD volume intersect between fishing effort 
-  udvol95_intersect <- (kde_res_id$volume.95) - volume.95
-  udvol95_intersect_percentage <- ((kde_res_id$volume.95 - volume.95) / kde_res_id$volume.95) * 100
+  # m3 -> km3
+  volume.95 <- volume.95/1000000000  
+  volume.75 <- volume.75/1000000000
+  volume.50 <- volume.50/1000000000
   
-  udvol75_intersect <- (kde_res_id$volume.95) - volume.75
-  udvol75_intersect_percentage <- ((kde_res_id$volume.75 - volume.75) / kde_res_id$volume.75) * 100
+  # UD volume without intersect between fishing effort (kde free of interaction)
+  udvol95_intersect <- (kde_res_id$volume.95.km3) - volume.95
+  udvol95_intersect_percentage <- ((kde_res_id$volume.95.km3 - volume.95) / kde_res_id$volume.95.km3) * 100
   
-  udvol50_intersect <- (kde_res_id$volume.50) - volume.50
-  udvol50_intersect_percentage <- ((kde_res_id$volume.50 - volume.50) / kde_res_id$volume.50) * 100
+  udvol75_intersect <- (kde_res_id$volume.75.km3) - volume.75
+  udvol75_intersect_percentage <- ((kde_res_id$volume.75.km3 - volume.75) / kde_res_id$volume.75.km3) * 100
+  
+  udvol50_intersect <- (kde_res_id$volume.50.km3) - volume.50
+  udvol50_intersect_percentage <- ((kde_res_id$volume.50.km3 - volume.50) / kde_res_id$volume.50.km3) * 100
   
   # for total volume
   volume.total     <- calculate_vol_stack(kde, z = z)
   volume_intersect <- calculate_vol_stack(kde_fishing_intersect, z = z)
-  volume_total_intersect <- volume.total - volume_intersect
+  volume_total_intersect <- volume.total - volume_intersect 
+  # **** some problems for calculate volumnes with NA in some layers of raster stack
   
   
   

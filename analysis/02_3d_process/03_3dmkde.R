@@ -28,10 +28,13 @@ source("analysis/02_3d_process/fun/fun_3d_utils.R") # custom functions for 3d pr
 source("analysis/02_3d_process/fun/fun_fishtrack3d.R") # functions for fishtrack3D R package
 source("analysis/02_3d_process/fun/fun_ks3d.R") 
 
+
 # 1) list ttdr L3 files
 ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names = TRUE, pattern = "L3_ttdr.csv")
 
-
+# raster/voxel area size (meters) 10000 = 10x10 km
+# use 5x5 pixel to more accuracy results in fishing overlap
+size = 5000
 
 # ------------------------------------------------------------------------------
 # 2) process 3D Kernel Density Stimation (3d kde) using mkde package from animal movement
@@ -41,10 +44,10 @@ ttdr_files <- list.files(paste0(main_dir,"/input/tracking/ttdr/L3"), full.names 
 
 t.max = 250
 integration.step = 5
-voxel.xsize = 10000
-voxel.ysize = 10000
+voxel.xsize = size
+voxel.ysize = size
 voxel.zsize = 10
-extend.raster = 10000
+extend.raster = size
 zll = 0
 crs = "+init=epsg:3035"
 contours = c(0.50, 0.75, 0.95)
@@ -293,6 +296,11 @@ write.csv(df, paste0(output_data,"/kde_3d_res.csv"), row.names = FALSE)
 # -------------------------------------------------------------------------------
 # 4) Create Rasterbrick (or RasterStack) from mkde.objt and kde values
 
+
+# load world land mask to delimited 3d kernel densities "medium scale = 50m"
+world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+
+
 # list results for all individuals
 files <- list.files(output_data, pattern = "_3dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
 
@@ -380,9 +388,25 @@ for (f in files) {
     x[x == 0] <- NA
     return(x)
   })
-  
   #plot(udvolume)
-  # export raster brick
+  
+
+  # crop / clip by landmask
+  # using mask 
+  # Note that mask take into account that the cell's centroid is in the polygon. 
+  # if the centroid doesn't intersect with the polygon, there will be not a masking
+  # solution for other cases: https://gis.stackexchange.com/questions/255025/r-raster-masking-a-raster-by-polygon-also-remove-cells-partially-covered
+  
+  # for our analysis, using default raster::maks function is enough based on the raster kde resolution
+  # land mask
+  world <- sf::st_transform(world, raster::crs(raster_stack))
+  # mask (inverse for marine enviroment)
+  udvolume <- raster::mask(udvolume, world, inverse = TRUE)
+  raster_stack <- raster::mask(raster_stack, world, inverse = TRUE)
+  # plot(raster_stack)
+  
+  
+  # export raster brick -------------
   # raster_stack <- resample(raster_stack, reference_raster, method = "bilinear") # Note: used in the first version (no layer fliped)
   rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack.tif")
   writeRaster(raster_stack, rst_file, overwrite=TRUE)
@@ -403,6 +427,8 @@ Sys.time() - t # 3 min --- 18 min all process
 
 
  
+
+
 # # -----------------------------------------------------------------------------
 # # 5) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
 # 
@@ -434,6 +460,10 @@ Sys.time() - t # 3 min --- 18 min all process
 #   unlink(vtk_file)
 # }
 # 
-# 
-# 
+
+
+
+
+
+
 

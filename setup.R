@@ -22,7 +22,7 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
                "reshape2", "tools", "purrr", # data manipulation
                "foreach", "doParallel",  # parallel computing
                "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
-               "rnaturalearthhires", "maptools", "suntools", "raster", #spatial
+               "rnaturalearthhires", "maptools", "suntools", "raster", "terra", #spatial
                "suncalc", # enviromental variables
                "gfwr", # For Global Fishing Watch API
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
@@ -67,3 +67,13 @@ if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 # 3. Global Fishing Watch API key
 if(cpu == "jmb")   f <- "C:/Users/J. Menéndez Blázquez/Desktop/R/gfw_api/gfw_api.txt"
 key <- paste(readLines(f, warn = FALSE), collapse = "")
+
+
+# ------------------------------------------------------------------------------
+# 4. GEBCO Bathymetry
+# if(cpu == "jmb")  bath <- paste0(input_dir, "/gis/gebco/mediterranean_sea_gebco_2024.tif")
+
+
+
+
+
