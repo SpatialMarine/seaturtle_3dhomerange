@@ -384,6 +384,9 @@ write.csv(df, paste0(output_data,"/kde_2d_res_night.csv"), row.names = FALSE)
 # -----------------------------------------------------------------------------
 # 4) export VTK and ASCII 2d files from 2d mkde.obt         ----------------
 
+# load world land mask to delimited 3d kernel densities "medium scale = 50m"
+world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+
 # list results for all individuals for day
 files <- list.files(output_data, pattern = "_2dmkde_obj_day.rdata", recursive = TRUE, full.names = TRUE)
 
@@ -394,9 +397,18 @@ for (f in files) {
   organismID <- sub("_2dmkde_obj_day\\.rdata$", "", basename(f))
   
   # export to raster using mkde.raster function from last version of mkde R pakcage
-  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_raster_day.tif")
   mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # add CRS to raster
+  crs(mkde.rst) <- CRS("EPSG:3035") # using newest version of assing CRS
+  
+  # land mask
+  world <- sf::st_transform(world, raster::crs(mkde.rst))
+  # mask (inverse for marine enviroment)
+  mkde.rst <- raster::mask(mkde.rst, world, inverse = TRUE)
   # plot(mkde.rst)
+  
+  # export / save
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_raster_day.tif")
   writeRaster(mkde.rst, rst_file, overwrite = TRUE)
   
   # # output ascii file
@@ -408,7 +420,6 @@ for (f in files) {
   # writeToVTK(mkde.obj, vtk_file,
   #            description=paste0(organismID," 2D MKDE"))
 }
-
 
 
 # list results for all individuals for night
@@ -420,11 +431,23 @@ for (f in files) {
   # extract id from file
   organismID <- sub("_2dmkde_obj_night\\.rdata$", "", basename(f))
   
-  # export to raster using mkde.raster function from last version of mkde R pakcage
-  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_raster_night.tif")
+  # export to raster using mkde.raster function from last version of mkde R pakcag
   mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # add CRS to raster
+  crs(mkde.rst) <- CRS("EPSG:3035") # using newest version of assign CRS
+  
+  # land mask
+  world <- sf::st_transform(world, raster::crs(mkde.rst))
+  # mask (inverse for marine enviroment)
+  mkde.rst <- raster::mask(mkde.rst, world, inverse = TRUE)
   # plot(mkde.rst)
+  
+  # export / save raster
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_raster_night.tif")
   writeRaster(mkde.rst, rst_file, overwrite = TRUE)
+  
+  
+  
   
   # # output ascii file
   # ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_ascii.txt")
@@ -435,11 +458,6 @@ for (f in files) {
   # writeToVTK(mkde.obj, vtk_file,
   #            description=paste0(organismID," 2D MKDE"))
 }
-
-
-
-
-
 
 
 

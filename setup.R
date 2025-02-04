@@ -27,13 +27,15 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
                "gfwr", # For Global Fishing Watch API
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
                "rgl", "plot3D", "plotly","plot3Drgl", "ggsvg", # 3D visualization
+               "layer",
                "diveMove", # process dive tracking data
-               "ggplot2", "gridExtra", "grid", #plot
+               "ggplot2", "gridExtra", "grid", "viridis", #plot
                "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
 
 # instal remotes repositories
 # remotes::install_github('coolbutuseless/svgparser')
 # remotes::install_github('coolbutuseless/ggsvg')
+remotes::install_github("marcosci/layer")
 
 # Global Fishing Watch (GFW)
 # devtools::install_github("GlobalFishingWatch/gfwr")

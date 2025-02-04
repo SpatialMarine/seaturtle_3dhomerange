@@ -439,8 +439,276 @@ write.csv(df, paste0(output_data,"/kde_3d_res_night.csv"), row.names = FALSE)
 
 
 
+
+
+# -------------------------------------------------------------------------------
+# 4) Create Rasterbrick (or RasterStack) from mkde.objt and kde values
+
+# output data - create before
+output_data <- paste0(output_dir,"/","01_kde_3d")
+
+# load world land mask to delimited 3d kernel densities "medium scale = 50m"
+world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+
+
+# list results for all individuals for day ------------------------------------
+files <- list.files(output_data, pattern = "_3dmkde_obj_day.rdata", recursive = TRUE, full.names = TRUE)
+
+for (f in files) {
+  # load 3D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_3dmkde_obj_day\\.rdata$", "", basename(f))
+  
+  # info
+  cat("Calculate UD volume / processing mkde.obj to RasterBrick (DAY)")
+  cat("\n")
+  cat("Processing organism ID:", organismID)
+  
+  # export to raster using mkde.raster function from last version of mkde R pakcage
+  # rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rbrick.tif")
+  # mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # plot(mkde.rst)
+  # Not work for 3D only for 2D and 2.5D...
+  
+  # Crear una lista vacía para almacenar los RasterLayer
+  raster_layers <- list()
+  
+  # Iterar sobre los niveles de z (de 1 a nz) para crear un RasterLayer para cada uno
+  for (i in 1:mkde.obj$nz) {
+    # Extraer los valores para el nivel i
+    d_layer <- mkde.obj$d[, , i]
+    
+    # Transpond and flip the layer - Key step to convert mdke.obj into RasterStack
+    # Transponer y luego voltear verticalmente (flip) la capa
+    d_matrix <- base::t(d_layer)  # Transponer la capa
+    d_flipped <- d_matrix[base::nrow(d_matrix):1, ]  # Voltear verticalmente
+    
+    # Crear un RasterLayer para ese nivel (usando x, y como coordenadas y d_flipped como valores)
+    r_layer <- raster(d_flipped, xmn = min(mkde.obj$x), xmx = max(mkde.obj$x), 
+                      ymn = min(mkde.obj$y), ymx = max(mkde.obj$y))
+    
+    # Añadir el RasterLayer a la lista
+    raster_layers[[i]] <- r_layer
+  }
+  
+  # Convert list of raser layers into RasterStack object
+  # raster_brick <- brick(raster_layers)
+  
+  raster_stack <- stack(raster_layers)
+  
+  # add CRS to raster brick
+  crs(raster_stack) <- CRS("EPSG:3035") # using newest version of assing CRS
+  # change layers names
+  names(raster_stack) <- paste("layer", 1:nlayers(raster_stack), sep = ".")
+  #plot(raster_stack)
+  
+  # values 0 as NA
+  raster_stack <- calc(raster_stack, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
+  
+  # note that the transformation from mkde.obj to raster stack modify 
+  # the voxel / pixel resolution
+  # it necessary apply a resample
+  
+  # # raster of reference of 10x10km = 10,000 m2
+  # reference_raster <- raster(
+  #   xmn = extent(raster_stack)@xmin,
+  #   xmx = extent(raster_stack)@xmax,
+  #   ymn = extent(raster_stack)@ymin,
+  #   ymx = extent(raster_stack)@ymax,
+  #   res = c(10000, 10000),  # Resolución deseada
+  #   crs = crs(raster_stack)  # Mantener el CRS original
+  # )
+  
+  
+  # calculate ud volumes for raster stack
+  # fishtrack3D::volumeUD()
+  # see also fun/fun_fishtrack3d.R
+  udvolume <- volumeUD(raster_stack, ind.layer = FALSE)
+  # crs
+  crs(udvolume) <- CRS("EPSG:3035")
+  # rename rasterstack layers names
+  names(udvolume) <- paste("layer", 1:nlayers(udvolume), sep = ".")
+  
+  # 0 values as NA
+  udvolume <- calc(udvolume, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
+  #plot(udvolume)
+  
+  
+  # crop / clip by landmask
+  # using mask 
+  # Note that mask take into account that the cell's centroid is in the polygon. 
+  # if the centroid doesn't intersect with the polygon, there will be not a masking
+  # solution for other cases: https://gis.stackexchange.com/questions/255025/r-raster-masking-a-raster-by-polygon-also-remove-cells-partially-covered
+  
+  # for our analysis, using default raster::mask function is enough based on the raster kde resolution
+  # land mask
+  world <- sf::st_transform(world, raster::crs(raster_stack))
+  # mask (inverse for marine enviroment)
+  udvolume <- raster::mask(udvolume, world, inverse = TRUE)
+  raster_stack <- raster::mask(raster_stack, world, inverse = TRUE)
+  # plot(raster_stack)
+  # plot(udvolume)
+  
+  
+  # export raster brick -------------
+  # raster_stack <- resample(raster_stack, reference_raster, method = "bilinear") # Note: used in the first version (no layer fliped)
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack_day.tif")
+  writeRaster(raster_stack, rst_file, overwrite=TRUE)
+  
+  # udvolume <- resample(udvolume, reference_raster, method = "bilinear") # Note: used in the first version (no layer fliped)
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3d_UD_volume_rstack_day.tif")
+  writeRaster(udvolume, rst_file, overwrite=TRUE)
+  
+
+  Sys.sleep(2)
+  cat("\n")
+  cat("\n")
+}
+
+
+
+# list results for all individuals for night -----------------------------------
+files <- list.files(output_data, pattern = "_3dmkde_obj_night.rdata", recursive = TRUE, full.names = TRUE)
+
+for (f in files) {
+  # load 3D mdke.obj
+  load(f)
+  # extract id from file
+  organismID <- sub("_3dmkde_obj_night\\.rdata$", "", basename(f))
+  
+  # info
+  cat("Calculate UD volume / processing mkde.obj to RasterBrick (NIGHT)")
+  cat("\n")
+  cat("Processing organism ID:", organismID)
+  
+  # export to raster using mkde.raster function from last version of mkde R pakcage
+  # rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rbrick.tif")
+  # mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # plot(mkde.rst)
+  # Not work for 3D only for 2D and 2.5D...
+  
+  # Crear una lista vacía para almacenar los RasterLayer
+  raster_layers <- list()
+  
+  # Iterar sobre los niveles de z (de 1 a nz) para crear un RasterLayer para cada uno
+  for (i in 1:mkde.obj$nz) {
+    # Extraer los valores para el nivel i
+    d_layer <- mkde.obj$d[, , i]
+    
+    # Transpond and flip the layer - Key step to convert mdke.obj into RasterStack
+    # Transponer y luego voltear verticalmente (flip) la capa
+    d_matrix <- base::t(d_layer)  # Transponer la capa
+    d_flipped <- d_matrix[base::nrow(d_matrix):1, ]  # Voltear verticalmente
+    
+    # Crear un RasterLayer para ese nivel (usando x, y como coordenadas y d_flipped como valores)
+    r_layer <- raster(d_flipped, xmn = min(mkde.obj$x), xmx = max(mkde.obj$x), 
+                      ymn = min(mkde.obj$y), ymx = max(mkde.obj$y))
+    
+    # Añadir el RasterLayer a la lista
+    raster_layers[[i]] <- r_layer
+  }
+  
+  # Convert list of raser layers into RasterStack object
+  # raster_brick <- brick(raster_layers)
+  
+  raster_stack <- stack(raster_layers)
+  
+  # add CRS to raster brick
+  crs(raster_stack) <- CRS("EPSG:3035") # using newest version of assing CRS
+  # change layers names
+  names(raster_stack) <- paste("layer", 1:nlayers(raster_stack), sep = ".")
+  #plot(raster_stack)
+  
+  # values 0 as NA
+  raster_stack <- calc(raster_stack, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
+  
+  # note that the transformation from mkde.obj to raster stack modify 
+  # the voxel / pixel resolution
+  # it necessary apply a resample
+  
+  # # raster of reference of 10x10km = 10,000 m2
+  # reference_raster <- raster(
+  #   xmn = extent(raster_stack)@xmin,
+  #   xmx = extent(raster_stack)@xmax,
+  #   ymn = extent(raster_stack)@ymin,
+  #   ymx = extent(raster_stack)@ymax,
+  #   res = c(10000, 10000),  # Resolución deseada
+  #   crs = crs(raster_stack)  # Mantener el CRS original
+  # )
+  
+  
+  # calculate ud volumes for raster stack
+  # fishtrack3D::volumeUD()
+  # see also fun/fun_fishtrack3d.R
+  udvolume <- volumeUD(raster_stack, ind.layer = FALSE)
+  # crs
+  crs(udvolume) <- CRS("EPSG:3035")
+  # rename rasterstack layers names
+  names(udvolume) <- paste("layer", 1:nlayers(udvolume), sep = ".")
+  
+  # 0 values as NA
+  udvolume <- calc(udvolume, fun = function(x) { 
+    x[x == 0] <- NA
+    return(x)
+  })
+  #plot(udvolume)
+  
+  
+  # crop / clip by landmask
+  # using mask 
+  # Note that mask take into account that the cell's centroid is in the polygon. 
+  # if the centroid doesn't intersect with the polygon, there will be not a masking
+  # solution for other cases: https://gis.stackexchange.com/questions/255025/r-raster-masking-a-raster-by-polygon-also-remove-cells-partially-covered
+  
+  # for our analysis, using default raster::mask function is enough based on the raster kde resolution
+  # land mask
+  world <- sf::st_transform(world, raster::crs(raster_stack))
+  # mask (inverse for marine enviroment)
+  udvolume <- raster::mask(udvolume, world, inverse = TRUE)
+  raster_stack <- raster::mask(raster_stack, world, inverse = TRUE)
+  # plot(raster_stack)
+  # plot(udvolume)
+  
+  
+  # export raster brick -------------
+  # raster_stack <- resample(raster_stack, reference_raster, method = "bilinear") # Note: used in the first version (no layer fliped)
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3dmkde_obj_rstack_night.tif")
+  writeRaster(raster_stack, rst_file, overwrite=TRUE)
+  
+  # udvolume <- resample(udvolume, reference_raster, method = "bilinear") # Note: used in the first version (no layer fliped)
+  rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_3d_UD_volume_rstack_night.tif")
+  writeRaster(udvolume, rst_file, overwrite=TRUE)
+  
+  
+  Sys.sleep(2)
+  cat("\n")
+  cat("\n")
+}
+
+Sys.time() - t # 6 min --- 18 min all process
+
+
+
+
+
+
+
+
+
+
+
 # -----------------------------------------------------------------------------
-# 4) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
+# 5) export VTK and ASCII 3D files from 3D mkde.obt         ----------------
 
 # list results for all individuals for day
 files <- list.files(output_data, pattern = "_3dmkde_obj_day.rdata", recursive = TRUE, full.names = TRUE)

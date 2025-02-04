@@ -5,7 +5,9 @@
 ## Created by Jessica Ruff and David March (2021)
 
 # Update package and standarized field names following Sequeria et al., 2021
+# apply land mask to delenited marine region
 # by Javier Menéndez-Blázquez | @jmenblaz
+
 
 # Calculate 2d mkde steps:
 
@@ -234,7 +236,13 @@ write.csv(df, paste0(output_data,"/kde_2d_res.csv"), row.names = FALSE)
   
 # -----------------------------------------------------------------------------
 # 4) export VTK and ASCII 2D files from 2D mkde.obt         ----------------
-  
+
+# created previously
+output_data <- paste0(output_dir,"/","02_kde_2d")
+
+# load world land mask to delimited 3d kernel densities "medium scale = 50m"
+world <- rnaturalearth::ne_countries(scale = "medium", returnclass = "sf")
+
 # list results for all individuals
 files <- list.files(output_data, pattern = "_2dmkde_obj.rdata", recursive = TRUE, full.names = TRUE)
   
@@ -244,11 +252,21 @@ for (f in files) {
   # extract id from file
   organismID <- sub("_2dmkde_obj\\.rdata$", "", basename(f))
   
+  # convert to raster using mkde R package functions
+  mkde.rst <- mkde::mkdeToTerra(mkde.obj)
+  # add CRS to raster
+  crs(mkde.rst) <- CRS("EPSG:3035") # using newest version of assign CRS
+  
+  # land mask, transform world to correct CRS
+  world <- sf::st_transform(world, raster::crs(mkde.rst))
+  # mask (inverse for marine enviroment)
+  mkde.rst <- raster::mask(mkde.rst, world, inverse = TRUE)
+  # plot(mkde.rst)
+  
   # export to raster using mkde.raster function from last version of mkde R pakcage
   rst_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_raster.tif")
-  mkde.rst <- mkde::mkdeToTerra(mkde.obj)
-  # plot(mkde.rst)
   writeRaster(mkde.rst, rst_file, overwrite = TRUE)
+  
   
   # # output ascii file
   # ascii_file <- paste0(output_data,"/",organismID,"/",organismID,"_2dmkde_obj_ascii.txt")

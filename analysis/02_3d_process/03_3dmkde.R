@@ -3,8 +3,9 @@
 
 ## Created by Jessica Ruff and David March (2021)
 
-# Update package and standarized field names following Sequeria et al., 2021
-# by Javier Menéndez-Blázquez | @jmenblaz
+# - Update package and standarized field names following Sequeria et al., 2021
+# - land mask to ddelimited marine region
+# by Javier Menéndez-Blázquez | @jmenblaz (2024)
 
 # 03. Calculate 3D mkde
 #------------------------------------------------------------------------------
@@ -397,7 +398,7 @@ for (f in files) {
   # if the centroid doesn't intersect with the polygon, there will be not a masking
   # solution for other cases: https://gis.stackexchange.com/questions/255025/r-raster-masking-a-raster-by-polygon-also-remove-cells-partially-covered
   
-  # for our analysis, using default raster::maks function is enough based on the raster kde resolution
+  # for our analysis, using default raster::mask function is enough based on the raster kde resolution
   # land mask
   world <- sf::st_transform(world, raster::crs(raster_stack))
   # mask (inverse for marine enviroment)

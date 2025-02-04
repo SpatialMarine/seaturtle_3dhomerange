@@ -533,51 +533,63 @@ compThresholds <- function(raster_stack, prob) {
 # threshold value, not use probability
 # threshold = res$threshold.95 # valor umbral del threshold... no la probabilidad
 
+
 calculate_vol_stack <- function(raster_stack, threshold = NULL, z) {
   # Verificar que el raster_stack tiene múltiples capas
+  # Verify that raster_stack has multiple layers
   if (!inherits(raster_stack, "RasterStack") && !inherits(raster_stack, "RasterBrick")) {
-    stop("object must be a RasterStack or RasterBrick.")
+    stop("El objeto debe ser un RasterStack o RasterBrick. / Object must be a RasterStack or RasterBrick.")
   }
   
-  # if threshold is not provide, calculate the total volume
-  # Si no se proporciona un threshold, calcular el volumen total
+  # Si no se proporciona un umbral, calcular el volumen total
+  # If no threshold is provided, calculate the total volume
   if (is.null(threshold)) {
-    # values 0 as NA to avoid cells with no data
-    raster_stack <- calc(raster_stack, fun = function(x) { 
-      x[x == 0] <- NA
-      return(x)
-    })
-    threshold <- min(na.omit(values(raster_stack)))  # use min value of rasdter
+    # Obtener el valor mínimo del stack ignorando NA
+    # Get the minimum value of the stack ignoring NA values
+    threshold <- min(cellStats(raster_stack, stat = "min"), na.rm = TRUE)
   }
   
-  # Calcular las resoluciones espaciales (asumimos que todas las capas tienen la misma resolución)
-  xSz <- raster::xres(raster_stack)
-  ySz <- raster::yres(raster_stack)
-  zSz <- z # Si no tienes una dimensión z explícita, puedes asignarle un valor predeterminado
+  # Calcular las resoluciones espaciales
+  # Calculate spatial resolutions
+  xSz <- raster::xres(raster_stack)  # Resolución en el eje X / Resolution on X-axis
+  ySz <- raster::yres(raster_stack)  # Resolución en el eje Y / Resolution on Y-axis
+  zSz <- z  # Profundidad definida en la función / Depth value defined in the function
   
-  # Volumen de cada celda (3D)
+  # Volumen de cada celda en 3D
+  # Volume of each 3D cell
   av <- xSz * ySz * zSz
   
-  # Inicializar volumen total
+  # Inicializar el volumen total
+  # Initialize total volume
   total_volume <- 0
   
   # Iterar sobre cada capa del RasterStack
+  # Iterate over each layer of the RasterStack
   for (j in 1:nlayers(raster_stack)) {
     # Extraer los valores de la capa
+    # Extract values from the layer
     layer_vals <- raster::values(raster_stack[[j]])
     
-    # Identificar celdas que cumplen con el umbral
-    indices_above_threshold <- which(layer_vals >= threshold)
+    # Reemplazar valores NA por 0 para evitar celdas sin datos
+    # Replace NA values with 0 to avoid missing data cells
+    layer_vals[is.na(layer_vals)] <- 0
     
-    # Agregar el volumen de las celdas que cumplen con el umbral
-    total_volume <- total_volume + (av * length(indices_above_threshold))
+    # Contar el número de celdas que cumplen con el umbral
+    # Count the number of cells that meet the threshold
+    count_above_threshold <- sum(layer_vals >= threshold, na.rm = TRUE)
+    
+    # Sumar el volumen de esas celdas al volumen total
+    # Add the volume of those cells to the total volume
+    total_volume <- total_volume + (av * count_above_threshold)
   }
   
+  # Devolver el volumen total calculado
+  # Return the calculated total volume
   return(total_volume)
 }
 
 
-# 
+ 
 # # threshold value, not use probability
 # # threshold = res$threshold.95 # valor umbral del threshold... no la probabilidad
 # 
