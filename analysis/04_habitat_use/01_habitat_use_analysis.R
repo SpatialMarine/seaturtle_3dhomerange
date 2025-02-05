@@ -248,8 +248,6 @@ data$moon_bright_class <- as.factor(data$moon_bright_class)
 
 
 
-
-
 # 3.1) Day/night time ----------------------------------------
 
 dive_metrics_stats <- data %>%

@@ -35,7 +35,7 @@ pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr
 # instal remotes repositories
 # remotes::install_github('coolbutuseless/svgparser')
 # remotes::install_github('coolbutuseless/ggsvg')
-remotes::install_github("marcosci/layer")
+# remotes::install_github("marcosci/layer")
 
 # Global Fishing Watch (GFW)
 # devtools::install_github("GlobalFishingWatch/gfwr")

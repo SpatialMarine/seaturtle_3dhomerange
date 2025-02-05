@@ -196,7 +196,6 @@ file <- paste0(output_data,"/2D_3D_UD_results_daynight_t.test.txt")
 writeLines(results, file)
 
 
-
 # -----------------------------------------------------------------------------
 # export 2D and 3D tables for Supplementary information
 
