@@ -14,7 +14,7 @@
 # 2) Calculate Dives metrics following Horton et al., 2025 
   # We split dives into night / day using the begging of the descend (tracking/05_process_dives.R)
 
-# 3) Analysis of vertical habitat metrics
+# 3) Analysis of vertical habitat metrics (descriptive)
 
 
 
@@ -229,7 +229,6 @@ write.csv(data, f, row.names = FALSE)
 
 
 
-
 # ------------------------------------------------------------------------------
 # 3) Analysis dive metrics by                 ----------------------------------
 
@@ -246,63 +245,77 @@ data$season <- as.factor(data$season)
 data$daynight <- as.factor(data$daynight)
 data$moon_bright_class <- as.factor(data$moon_bright_class)
 
+# format date
+data$begdesc <- as.POSIXct(data$begdesc, format = "%Y-%m-%d %H:%M:%S")
+data$endasc <- as.POSIXct(data$endasc, format = "%Y-%m-%d %H:%M:%S")
 
 
-# 3.1) Day/night time ----------------------------------------
-
-dive_metrics_stats <- data %>%
+# Calcular estadísticas para day vs night
+stats <- data %>%
   group_by(daynight) %>%
   summarise(
-    mean_depth = median(meandep, na.rm = TRUE),
-    max_depth = median(maxdep, na.rm = TRUE),
-    mean_VMRd = median(VMRd, na.rm = TRUE))
+    mean_depth = mean(meandep, na.rm = TRUE),
+    sd_depth = sd(meandep, na.rm = TRUE),
+    max_depth = mean(maxdep, na.rm = TRUE),
+    sd_max_depth = sd(maxdep, na.rm = TRUE),
+    mean_VMR = mean(VMRd, na.rm = TRUE),
+    sd_VMR = sd(VMRd, na.rm = TRUE)
+  )
+
+print(stats)
+
+# high number of values > 5000 -> Kolmogorov test
+day_data <- data$meandep[data$daynight == "day"]
+night_data <- data$meandep[data$daynight == "night"]
+s_day <- ks.test(day_data, "pnorm", mean(day_data), sd(day_data))
+ks_night <- ks.test(night_data, "pnorm", mean(night_data), sd(night_data))
+
+# No mormality for VMRd, maxdep and meandep
 
 
+# 3.1) Day/night time ---------------------------------------------------------
+
+# 3.1.1 ) Mean depth -------------------
+# No normality -> Wilcoxon test
+wilcox_test <- wilcox.test(meandep ~ daynight, data = data)
+print(wilcox_test)
+
+# Wilcoxon rank sum test with continuity correction
+# 
+# data:  meandep by daynight
+# W = 461561377, p-value < 2.2e-16
+# alternative hypothesis: true location shift is not equal to 0
+
+# **** Significant differences between MEAN DEPTH reached during the day and night
+
+# daynight mean_depth sd_depth 
+# 1 day            21.0    12.7      
+# 2 night          12.3    7.97
+
+# 3.1.2) Maximum depth -----------------
+wilcox_test <- wilcox.test(maxdep ~ daynight, data = data)
+print(wilcox_test)
+
+# Wilcoxon rank sum test with continuity correction
+# 
+# data:  maxdep by daynight
+# W = 4.85e+08, p-value < 2.2e-16
+# alternative hypothesis: true location shift is not equal to 0
+
+# **** Significant differences between MAX DEPTH reached during the day and night
+
+# 3.1.3) VMRd Vertical Movement Rate dive -----------------
+wilcox_test <- wilcox.test(VMRd ~ daynight, data = data)
+print(wilcox_test)
+
+# Wilcoxon rank sum test with continuity correction
+# 
+# data:  VMRd by daynight
+# W = 482171653, p-value < 2.2e-16
+# alternative hypothesis: true location shift is not equal to 0
 
 
-
-
-
-
-
-
-
-
-
-
-# Gráficos de la profundidad media por condiciones
-ggplot(data_summary, aes(x = moon_bright_class, y = mean_depth, color = daynight)) +
-  geom_point(position = position_jitter(width = 0.1), size = 3) +
-  geom_boxplot(alpha = 0.3) +
-  facet_wrap(~ season) +
-  theme_minimal() +
-  labs(title = "Variabilidad de la profundidad media por fase lunar y día/noche")
-
-# Gráficos de VMR
-ggplot(data_summary, aes(x = moon_bright_class, y = VMR, color = daynight)) +
-  geom_point(position = position_jitter(width = 0.1), size = 3) +
-  geom_boxplot(alpha = 0.3) +
-  facet_wrap(~ season) +
-  theme_minimal() +
-  labs(title = "Variabilidad de VMR por fase lunar y día/noche")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+# **** Significant differences between VERTICAL MOVEMENT RATE dive reached during the day and night
 
 
 

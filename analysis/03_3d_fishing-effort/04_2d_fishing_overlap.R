@@ -86,7 +86,7 @@ for (i in 1:length(kde_files)) {
   organismID <- sub("_2dmkde_obj_raster\\.tif$", "", basename(kde))
   
   # info 
-  cat("Processing 3D overlap with fisheries:", i,"/",length(kde_files))
+  cat("Processing 2D overlap with fisheries:", i,"/",length(kde_files))
   cat(" · organismID:", organismID, "\n")
   
   # load kde result from mkde 3d functions process
@@ -141,10 +141,10 @@ for (i in 1:length(kde_files)) {
     # plot(kde_fishing_intersect)
     
     # kde without fishing area of impact(symmetrical difference)
-    kde_fishing_simdif <- raster::mask(kde, fishing,  inverse=TRUE) # provide the UD volume without impact
+    kde_fishing_simdif <- raster::mask(kde, fishing,  inverse = TRUE) # provide the UD area without impact
     # plot(kde_fishing_simdif)
     
-    # 2.3) calculate the 3D overlap volumes  ---------------------------------
+    # 2.3) calculate the 2D overlap volumes  ---------------------------------
     threshold.95 <- kde_res_id$threshold.95  
     threshold.75 <- kde_res_id$threshold.75
     threshold.50 <- kde_res_id$threshold.50

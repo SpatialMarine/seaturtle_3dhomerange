@@ -391,8 +391,8 @@ p_barplot95 <- ggplot(df_longUD95, aes(x = Dimension, y = Intersection, fill = i
               strip.background = element_blank(),  # remove facet background
               strip.text = element_text(size = 12),  # adjust facet labels size
         ) +
-        scale_fill_manual(values = c("TW.2D" = "#00BFC4", "TW.3D" = "#00868B",  # Lighter and darker for TW
-                                     "LL.2D" = "#F8766D", "LL.3D" = "#ba5952")) +  # Lighter and darker for LL
+        scale_fill_manual(values = c("TW.2D" = "#FF9678", "TW.3D" = "#41436A",  # Lighter and darker for TW
+                                     "LL.2D" = "#FF9678", "LL.3D" = "#41436A")) +  # Lighter and darker for LLL
         geom_jitter(width = 0.2, size = 2, color = "black", alpha = 0.5)  # Add outliers (jittered points)
 
 
@@ -436,6 +436,8 @@ p_interaction95 <- ggplot(df_summary, aes(x = Dimension, y = Mean_Intersection, 
   labs(x = "", 
        y = "Overlap between UD95 and fishing effort (%)",
        color = "Fishing Gear") +
+  # values color
+  scale_color_manual(values = c("TW" = "#FF9678", "LL" = "#41436A")) +
   # theme
   theme_bw() +
   theme(axis.title.y = element_text(size = 12, margin = margin(r = 8)),  # space in title
@@ -455,8 +457,7 @@ p_interaction95 <- ggplot(df_summary, aes(x = Dimension, y = Mean_Intersection, 
 
 p_interaction95
 
-# # export / save plot
-# output_fig <- paste0(output_dir,"/fig")
+
 # 
 # p_png <- paste0(output_fig,"/","sup_fig_interaction_plot_UD95.png")
 # p_svg <- paste0(output_fig,"/","sup_fig_interaction_plot_UD95.svg")
@@ -508,8 +509,8 @@ p_barplot50 <- ggplot(df_longUD50, aes(x = Dimension, y = Intersection, fill = i
                         strip.background = element_blank(),  # remove facet background
                         strip.text = element_text(size = 12),  # adjust facet labels size
                   ) +
-                  scale_fill_manual(values = c("TW.2D" = "#00BFC4", "TW.3D" = "#00868B",  # Lighter and darker for TW
-                                               "LL.2D" = "#F8766D", "LL.3D" = "#ba5952")) +  # Lighter and darker for LL
+                  scale_fill_manual(values = c("TW.2D" = "#FF9678", "TW.3D" = "#41436A",  # Lighter and darker for TW
+                                               "LL.2D" = "#FF9678", "LL.3D" = "#41436A")) +  # Lighter and darker for LL
                   geom_jitter(width = 0.2, size = 2, color = "black", alpha = 0.5)  # Add outliers (jittered points)
 
 
@@ -529,6 +530,8 @@ p_interaction50 <- ggplot(df_summary, aes(x = Dimension, y = Mean_Intersection, 
   labs(x = "", 
        y = "Overlap between UD50 and fishing effort (%)",
        color = "Fishing Gear") +
+  # values color
+  scale_color_manual(values = c("TW" = "#FF9678", "LL" = "#41436A")) +
   # theme
   theme_bw() +
   theme(axis.title.y = element_text(size = 12, margin = margin(r = 10)),  # space in title
@@ -562,6 +565,8 @@ p_interaction50
 
 
 
+# # export / save plot
+output_fig <- paste0(output_dir,"/fig")
 
 
 # combine UD50 y UD95 plots   -------------------------------------------------
