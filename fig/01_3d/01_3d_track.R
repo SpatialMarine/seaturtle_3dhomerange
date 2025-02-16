@@ -165,22 +165,35 @@ render_label(elevation.matrix, lat = end[1], long = end[2],
              altitude = 1000, 
              extent = attr(elevation.raster, "extent"),
              zscale = my.z, 
-             text = "End", textcolor = "black", linecolor="darkred",
-             dashed = FALSE)
+             text = "End", textcolor = "white", linecolor="darkred",
+             dashed = FALSE,
+             offset = 2500,
+             clear_previous = FALSE)
 
 
+
+# IN PROCESSS -------------------------- WORKS BUT SOLVE PROBLEM WITH EMPTY POLYGONS
 # add countries
+sf::sf_use_s2(FALSE)
+
+land = sf::st_simplify(sf::st_buffer(land,-0.003), dTolerance=0.005)
+plot(land$geometry)
 render_polygons(land, 
-                extent = attr(elevation.raster,"extent"),
+                extent = attr(elevation.raster, "extent"),
                 top = 50,
-                parallel = TRUE)
+                parallel = FALSE)
+
+land <- land
+
+st_is_empty(land)
+land <- land[!st_is_empty(land), ]
 
 # extent_latlong = sp::SpatialPoints(rbind(bottom_left, top_right), 
 #                                          proj4string=sp::CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
 # attr(elevation.matrix, "extent") = extent_latlong
 
 
-
+st_bbox(land)
 
 # point of view for differenrts plots
 render_camera(theta = 315, phi = 25, zoom = 0.5, fov = 15)
