@@ -581,8 +581,7 @@ elevation.matrix  %>%
 
 
 # ----------------------------------------------------------------------------
-# add UD 50
-# rename (as function)
+# add UD 50 difference
 rstack <- difference50
 
 # initial top and bottom values for polygons
