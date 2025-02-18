@@ -6,8 +6,11 @@
 # Javier Menéndez-Blázquez | @jmenblaz
 
 # Plot 3D track diorama
+# Plot 3D track diorama
+# load only panths, no packges.
+# some issue between Terra and Raster
 
-source("setup.R")
+# source("setup.R")
 
 ## Load libraries
 library(sf)
