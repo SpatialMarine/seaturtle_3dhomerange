@@ -21,21 +21,38 @@ cpu <- "jmb"
 pacman::p_load("data.table", "tidyr", "dplyr", "lubridate", "openxlsx", "stringr", 
                "reshape2", "tools", "purrr", # data manipulation
                "foreach", "doParallel",  # parallel computing
-               "sp", "raster", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
+               "sp", "jsonlite","geojsonsf", "geojsonio", "rworldxtra", 
                "rnaturalearthhires", "maptools", "suntools", "raster", "terra", #spatial
                "suncalc", # enviromental variables
                "gfwr", # For Global Fishing Watch API
                "ks", "mkde", "akima","ncdf4", # 3D spatial analysis
                "rgl", "plot3D", "plotly","plot3Drgl", "ggsvg", # 3D visualization
-               "layer",
                "diveMove", # process dive tracking data
                "ggplot2", "gridExtra", "grid", "viridis", #plot
                "animalsensor", "aniMotum","move", "argosfilter", "pathroutr", "sfnetworks", "nabor")  # tracking process tools
+library(raster)
 
 # instal remotes repositories
 # remotes::install_github('coolbutuseless/svgparser')
 # remotes::install_github('coolbutuseless/ggsvg')
 # remotes::install_github("marcosci/layer")
+
+
+# # Need lastest version of rgl and rayshader
+# remove.packages("rgl")
+# installed.packages()["rgl", "Version"]
+# # install 
+# remotes::install_github("dmurdoch/rgl")
+# 
+# 
+# find.package("rayshader")
+# # remove.packages("rayshader")
+# installed.packages()["rayshader", "Version"]
+# lastest Januray 2025 version -> "0.38.11"
+
+
+
+
 
 # Global Fishing Watch (GFW)
 # devtools::install_github("GlobalFishingWatch/gfwr")

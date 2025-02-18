@@ -7,17 +7,15 @@
 
 # Plot 3D track diorama
 
+source("setup.R")
 
 ## Load libraries
 library(sf)
 library(plot3D)
 library(rgl)
 library(plot3Drgl)
-library(RColorBrewer)
 library(rasterVis)
-library(raster)
-library(terra)
-library(ncdf4)
+# library(ncdf4)
 
 library(rayshader)
 
@@ -40,6 +38,8 @@ bb <- st_as_sfc(st_bbox(c(xmin = xlim[1], xmax = xlim[2],
 # crop
 land <- st_crop(land, bb)
 plot(land$geometry)
+# select only Balearic islands
+land <- land[1,]
 
 
 
@@ -73,21 +73,18 @@ plot(b) # check plotting area
 
 
 
-
-
 # -----------------------------------------------------------------------------
 # 2) Prepare diorama              -----------------------------------------
 
 # rename object
 elevation.raster <- b
-
+rm(b) # clean enviroment
 # matrix 
 elevation.matrix <- matrix(extract(elevation.raster, extent(elevation.raster), buffer = 100), nrow = ncol(elevation.raster), ncol = nrow(elevation.raster))
 
 # Z scale for elevation matrix
 my.z <- 25
 
-plot(elevation.matrix)
 # elevantion.matrix %>%
 #   sphere_shade(zscale= my.z,
 #                texture=create_texture("#E9C68D","#AF7F38",
@@ -95,8 +92,6 @@ plot(elevation.matrix)
 #                                        "#B3BEA3")) %>%
 #   plot_map()
 
-
-  
 
 # test map
 elevation.matrix  %>% 
@@ -112,9 +107,8 @@ elevation.ray.shade <- ray_shade(elevation.matrix,sunangle = 35, zscale = my.z, 
 # plot_map(elevation.ray.shade)
 
 
-
-
 # plot diorama -----------------------------------------------------------------
+sf::sf_use_s2(FALSE)
 
 # plot diorama
 elevation.matrix  %>% 
@@ -126,15 +120,21 @@ elevation.matrix  %>%
           zscale = my.z, 
           fov = 90,
           lineantialias = TRUE,
-          theta = 45,
-          phi = 90,
-          zoom = 0.7)
+          # shadow
+          shadow_darkness = 0.5,
+          # base
+          baseshape = "rectangle",
+          # camera
+          theta = 315,
+          phi = 25,
+          zoom = 0.5,
+          close_previous = TRUE)
 
 # add effects to ploted diorama
 render_water(elevation.matrix, zscale = my.z, 
              wateralpha = 0.22, 
              watercolor = "skyblue1",
-             waterlinealpha = 0.75,
+             waterlinealpha = 0.85,
              waterlinecolor = "lightblue1",
              remove_water = TRUE)
 
@@ -142,63 +142,78 @@ render_water(elevation.matrix, zscale = my.z,
 # render path / track of organism ID
 render_path(extent = attr(elevation.raster,"extent"), 
             lat = unlist(ttdr$latitude), long = unlist(ttdr$longitude),
-            altitude = (ttdr$depth)*-5,
+            altitude = (ttdr$depth)*-6,
             offset = -2,
             zscale = my.z,
             antialias = FALSE,
             # size = 4,
-            color="black")
+            color="black",
+            clear_previous = TRUE)
 
 
-# add labels
+# add labels ----- 
 # start
 render_label(elevation.matrix, lat = start[1], long = start[2], 
              z = 10,
-             altitude = 1000,
+             altitude = 3500,
+             offset = 150,
              extent = attr(elevation.raster, "extent"),
              zscale = my.z, 
-             text = "Start", textcolor = "black", linecolor="darkgreen",
-             dashed = FALSE)
+             text = "", textcolor = "black", linecolor="#8BB92D", linewidth = 3,
+             dashed = FALSE,
+             clear_previous = TRUE)
+
+render_label(elevation.matrix, lat = start[1], long = start[2], 
+             z = 10,
+             altitude = 3500,
+             offset = 150,
+             extent = attr(elevation.raster, "extent"),
+             zscale = my.z,
+             alpha = 0.8,
+             text = "", textcolor = "black", linecolor="grey5", linewidth = 5,
+             dashed = FALSE,
+             clear_previous = F)
+
+
 # end
 render_label(elevation.matrix, lat = end[1], long = end[2],
-             z = 5000,
-             altitude = 1000, 
+             z = 10,
+             altitude = 4000, 
              extent = attr(elevation.raster, "extent"),
              zscale = my.z, 
-             text = "End", textcolor = "white", linecolor="darkred",
+             text = "", textcolor = "white", linecolor="#B74733", linewidth = 3,
+             dashed = FALSE,
+             offset = 2500,
+             clear_previous = FALSE)
+
+render_label(elevation.matrix, lat = end[1], long = end[2],
+             z = 10,
+             altitude = 4000, 
+             extent = attr(elevation.raster, "extent"),
+             zscale = my.z, 
+             text = "", textcolor = "black", linecolor="grey5", linewidth = 5,
              dashed = FALSE,
              offset = 2500,
              clear_previous = FALSE)
 
 
-
-# IN PROCESSS -------------------------- WORKS BUT SOLVE PROBLEM WITH EMPTY POLYGONS
-# add countries
-sf::sf_use_s2(FALSE)
-
-land = sf::st_simplify(sf::st_buffer(land,-0.003), dTolerance=0.005)
-plot(land$geometry)
-render_polygons(land, 
-                extent = attr(elevation.raster, "extent"),
-                top = 50,
-                parallel = FALSE)
-
-land <- land
-
-st_is_empty(land)
-land <- land[!st_is_empty(land), ]
-
+# add land mask  --- 
 # extent_latlong = sp::SpatialPoints(rbind(bottom_left, top_right), 
 #                                          proj4string=sp::CRS("+proj=longlat +ellps=WGS84 +datum=WGS84"))
 # attr(elevation.matrix, "extent") = extent_latlong
+# land = sf::st_simplify(sf::st_buffer(land,-0.003), dTolerance=0.005)
+
+render_polygons(land, 
+                extent = attr(elevation.raster, "extent"),
+                top = 2.5,
+                color = "grey95",
+                alpha = 0.75,
+                parallel = FALSE,
+                clear_previous = TRUE)
 
 
-st_bbox(land)
-
-# point of view for differenrts plots
-render_camera(theta = 315, phi = 25, zoom = 0.5, fov = 15)
-
-
+# point of view for differenrts plots ------ 
+render_camera(theta = 315, phi = 25, zoom = 0.5, fov = 10)
 
 
 # export / save diorama --------------------------------------------------------
@@ -213,39 +228,6 @@ render_snapshot(filename = paste0(output_dir, "/fig/fig_track_3d.png"))
 #                 software_render = TRUE)
 # 
 # render_highquality(filename = paste0(output_dir, "/fig/fig_track_3d_hd.png"))
-
-
-
-
-
-
-# ------------------------------------------------------------------------------
-
-
-
-
-
-# plot 3D mesh
-elevation.matrix <- matrix(extract(k2d, extent(k2d), buffer = 100), nrow = ncol(k2d), ncol = nrow(k2d))
-
-
-
-
-
-
-
-
-
-
-# track
-# add track points:
-
-# # extention of map
-# extent_vals <- extent(elevation.raster)
-# # filter by coordinates
-# ttdr <- ttdr %>%
-#   filter(longitude >= extent_vals[1] & longitude <= extent_vals[2] & 
-#            latitude >= extent_vals[3] & latitude <= extent_vals[4])
 
 
 
