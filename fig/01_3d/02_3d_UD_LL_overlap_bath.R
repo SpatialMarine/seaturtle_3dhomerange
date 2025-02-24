@@ -175,14 +175,13 @@ plot(LL$geometry)
 # 2) Prepare diorama              -----------------------------------------
 # 
 # # rename object
-# elevation.raster <- b
-# rm(b) # clean enviroment
-# # matrix 
-# elevation.matrix <- matrix(extract(elevation.raster, extent(elevation.raster), buffer = 100), nrow = ncol(elevation.raster), ncol = nrow(elevation.raster))
+elevation.raster <- b
+rm(b) # clean enviroment
+# matrix 
+elevation.matrix <- matrix(extract(elevation.raster, extent(elevation.raster), buffer = 100), nrow = ncol(elevation.raster), ncol = nrow(elevation.raster))
 
 # Z scale for elevation matrix
-# my.z <- 25
-
+my.z <- 25
 # elevantion.matrix %>%
 #   sphere_shade(zscale= my.z,
 #                texture=create_texture("#E9C68D","#AF7F38",
@@ -509,13 +508,13 @@ render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_LL_UD95_overlap_3d_c
 # 2) Prepare diorama              -----------------------------------------
 # 
 # # rename object
-# elevation.raster <- b
-# rm(b) # clean enviroment
-# # matrix 
-# elevation.matrix <- matrix(extract(elevation.raster, extent(elevation.raster), buffer = 100), nrow = ncol(elevation.raster), ncol = nrow(elevation.raster))
+elevation.raster <- b
+rm(b) # clean enviroment
+# matrix
+elevation.matrix <- matrix(extract(elevation.raster, extent(elevation.raster), buffer = 100), nrow = ncol(elevation.raster), ncol = nrow(elevation.raster))
 
 # Z scale for elevation matrix
-# my.z <- 25
+my.z <- 25
 
 # elevantion.matrix %>%
 #   sphere_shade(zscale= my.z,
@@ -828,6 +827,15 @@ render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_LL_UD50_overlap_3d_c
 #                 software_render = TRUE)
 # 
 # render_highquality(filename = paste0(output_dir, "/fig/fig_track_3d_hd.png"))
+
+
+# Export plots as HTML  ------------------------------------------------
+# save rgl window
+rgl_widget <- rglwidget(width = 2560, height = 1440)
+
+# save as HTML interactive
+saveWidget(rgl_widget, paste0(output_dir,"/fig/fig_LL_UD50_overlap_3d.html"))
+
 
 
 

@@ -938,3 +938,10 @@ render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD95_overlap_3d_c
 #                 software_render = TRUE)
 # 
 # render_highquality(filename = paste0(output_dir, "/fig/fig_track_3d_hd.png"))
+
+
+# save rgl window
+rgl_widget <- rglwidget(width = 2560, height = 1440)
+
+# save as HTML interactive
+saveWidget(rgl_widget, paste0(output_dir,"/fig/fig_TW_UD50_overlap_3d.html"))
