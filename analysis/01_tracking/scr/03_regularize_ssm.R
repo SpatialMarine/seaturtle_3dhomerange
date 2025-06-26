@@ -154,7 +154,7 @@ foreach(i=1:nrow(organism_meta), .packages=c("dplyr", "ggplot2", "aniMotum", "st
   # e.g., roads, rails, protected areas limits, etc (spatial polygons) 
   # see detail of function in -> ?pathroutr::prt_visgraph
   
-  #' see main_tracking_proces.R for @params of pathroutr::routepath() function
+  #' see parameters.R for @params of pathroutr::routepath() function
   if (rerouted == TRUE) {
     fit <- route_path(fit, what = "predicted", map_scale = map_scale, dist = dist_buffer)
   }

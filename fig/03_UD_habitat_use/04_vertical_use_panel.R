@@ -14,7 +14,7 @@
 
 
 library(gridExtra)
-
+library(ggnewscale)
 
 # Panel exploratorio de movimientos verticales (ver si los buceos so n más rapidos, 
 # profundos, etc por el dia, noche, meses iluminación de luna (da cara al hábitat modelling). Horton et al. 2025
@@ -69,9 +69,20 @@ stats <- stats %>%
   mutate(day_of_year_shifted = (day_of_year + 15) %% 365)  # Desplazar y asegurar el ciclo anual
 
 
+# calculate number of individual per year day
+individuals_per_day_total <- data %>%
+  group_by(day_of_year) %>%
+  summarise(individuals_count = n_distinct(organismID), .groups = 'drop')
+
+# Unir la información al dataframe de estadísticas
+stats <- left_join(stats, individuals_per_day_total, by = "day_of_year")
+
+
+
+
 # 1) Plot mean depths max depths by day and night
 pmean <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_meandep, color = daynight)) +
-            # Standarz deviation
+            # Standard deviation
             geom_ribbon(aes(ymin = Lower_meandep, ymax = Upper_meandep, fill = daynight), alpha = 0.25, color = NA) +
             
             # Sombra gris para 'day' y 'night'
@@ -95,6 +106,15 @@ pmean <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_meandep, color = da
             # colors
            scale_fill_manual(values = c("night" = "skyblue4", "day" = "gold3")) +
            scale_color_manual(values = c("night" = "skyblue4", "day" = "gold3")) +
+  
+            #  # New color scale for tile bar
+            #  new_scale_fill() +
+            # # tile bar with number of individual per day
+            # geom_tile(aes(x = day_of_year_shifted, y = 75, fill = individuals_count), 
+            #           width = 1.7, height = 3.2, color = NA) +
+            # scale_fill_gradient(low = "#C5C6FF", high = "#333553", 
+            #                     guide = guide_colorbar(title = "Tagged sea turtles")) +
+  
            theme_bw() +
            theme(axis.title.y = element_text(size = 10),
                   axis.title.x = element_blank(),
@@ -108,7 +128,6 @@ pmean <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_meandep, color = da
             labs(y = "Mean Depth (m)", x = "", color = "", fill = "")
 
 pmean 
-
 
 
 pmax <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_maxdep, color = daynight)) +
@@ -132,6 +151,16 @@ pmax <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_maxdep, color = dayn
   # colors
   scale_fill_manual(values = c("night" = "skyblue4", "day" = "gold3")) +
   scale_color_manual(values = c("night" = "skyblue4", "day" = "gold3")) +
+  
+   # New color scale for tile bar
+   new_scale_fill() +
+   # tile bar with number of individual per day
+   geom_tile(aes(x = day_of_year_shifted, y = 95, fill = individuals_count), 
+            width = 1.7, height = 3.2, color = NA) +
+   scale_fill_gradient(low = "#C5C6FF", high = "#333553", 
+                      guide = guide_colorbar(title = "Tagged sea turtles")) +
+  
+  # theme
   theme_bw() +
   theme(axis.title.y = element_text(size = 10),
         axis.title.x = element_blank(),
@@ -147,9 +176,9 @@ pmax <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_maxdep, color = dayn
 
 pmax
 
-# 
-# 
-# 
+
+
+
 # pvrm <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_VMRd, color = daynight)) +
 #   # Standarz deviation
 #   geom_ribbon(aes(ymin = Lower_VMRd, ymax = Upper_VMRd, fill = daynight), alpha = 0.25, color = NA) +
@@ -273,5 +302,35 @@ p_png <- paste0(output_fig,"/","fig_vertial_habitat_use_panel.png")
 p_svg <- paste0(output_fig,"/","fig_vertial_habitat_use_panel.svg")
 ggsave(p_png, p, width=22, height=24, units="cm", dpi=400, bg="white")
 ggsave(p_svg, p, width=22, height=24, units="cm", dpi=400, bg="white")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

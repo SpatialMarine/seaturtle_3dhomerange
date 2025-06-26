@@ -2,7 +2,7 @@
 # Title:
 
 #-------------------------------------------------------------------------------
-# 00. Download GFW data - calculate fishing effort within a customized area
+# 01. Download GFW data - calculate fishing effort within a customized area
 #-------------------------------------------------------------------------------
 
 # GFW-tools repository as reference to create the script presented here 

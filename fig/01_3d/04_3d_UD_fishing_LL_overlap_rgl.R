@@ -266,12 +266,12 @@ rgl.viewpoint(theta = 0, phi = -78, fov = 20, zoom = 0.85)
 # myUserMatrix <- par3d()$userMatrix
 
 
-# myUserMatrix <- matrix(c(
-#   0.48786455,  0.872916102, -0.002381701,  0,
-#   -0.01248934,  0.009708285,  0.999874711,  0,
-#   0.87282991, -0.487773567,  0.015638478,  0,
-#   0.00000000,  0.000000000,  0.000000000,  1
-# ), nrow = 4, byrow = TRUE)
+myUserMatrix <- matrix(c(
+  0.48786455,  0.872916102, -0.002381701,  0,
+  -0.01248934,  0.009708285,  0.999874711,  0,
+  0.87282991, -0.487773567,  0.015638478,  0,
+  0.00000000,  0.000000000,  0.000000000,  1
+), nrow = 4, byrow = TRUE)
 
 
 # myZoom <- par3d()$zoom
@@ -435,12 +435,13 @@ rgl.viewpoint(theta = 0, phi = -78, fov = 20, zoom = 0.85)
 # extact informaton about view angles
 # myUserMatrix <- par3d()$userMatrix
 
-# > myUserMatrix
-# [,1]        [,2]        [,3] [,4]
-# [1,] -0.63131070 -0.77536571 -0.01595954    0
-# [2,]  0.05698887 -0.06690454  0.99613017    0
-# [3,] -0.77343291  0.62795848  0.08642469    0
-# [4,]  0.00000000  0.00000000  0.00000000    1
+# matryx for UD95
+myUserMatrix <- matrix(c(
+  -0.63131070, -0.77536571, -0.01595954,  0,
+  0.05698887, -0.06690454,  0.99613017,  0,
+  -0.77343291,  0.62795848,  0.08642469,  0,
+  0.00000000,  0.00000000,  0.00000000,  1
+), nrow = 4, byrow = TRUE)
 
 # view point using a custom user matrix for export / save 3D plots
 # view matrix created previously in UD50

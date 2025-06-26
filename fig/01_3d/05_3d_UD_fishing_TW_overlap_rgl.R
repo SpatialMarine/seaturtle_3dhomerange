@@ -444,13 +444,8 @@ myUserMatrix <- matrix(c(
   0.00000000,  0.00000000,  0.00000000,  1
 ), nrow = 4, byrow = TRUE)
 
-# Aplicar la vista en rgl
-rgl.viewpoint(userMatrix = myUserMatrix)
-
-
 # view point using a custom user matrix for export / save 3D plots
 # view matrix created previously in UD50
-
 rgl.viewpoint(userMatrix = myUserMatrix, zoom = 0.83)
 
  

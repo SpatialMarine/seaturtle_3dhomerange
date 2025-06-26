@@ -159,7 +159,7 @@ diveSummary <- function(dcalib){
     t <- as.numeric(t-t1)
     xout <- as.numeric(xout-t1)
     
-    pred <- aspline(t, d, xout=xout, n=2)  # prediction
+    pred <- aspline(t, d, xout=xout, n=2)  # prediction #aspline AKIMA
     bottom <- which(pred$y>diveDF$botdepth[i])# get depths below bottom depth
     botstart <- xout[bottom[1]]  # first time where depth is > than bottom depth
     botend <- xout[bottom[length(bottom)]] # last time where depth is > than bottom depth

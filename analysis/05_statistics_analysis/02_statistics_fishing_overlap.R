@@ -19,6 +19,7 @@ if (!dir.exists(output_data)) dir.create(output_data, recursive = TRUE)
 df2d <- read.csv(paste0(output_dir,"/03_fishing_2d_overlap/2d_kde_fishing_overlap_results.csv"))
 df3d <- read.csv(paste0(output_dir,"/03_fishing_3d_overlap/3d_kde_fishing_overlap_results.csv"))
 
+# UD95 ----------------------------------
 # Normality test - Shapiro test
 shapiro.test((df2d$ud95_intersect_percentage))
 shapiro.test((df3d$udvol95_intersect_percentage))
@@ -32,6 +33,9 @@ wilcox.test(df2d$ud95_intersect_percentage, df3d$udvol95_intersect_percentage,
 summary(df2d$ud95_intersect_percentage)
 summary(df3d$udvol95_intersect_percentage)
 
+sd(df2d$ud95_intersect_percentage)
+sd(df3d$udvol95_intersect_percentage)
+
 # results:
     # Wilcoxon signed rank test with continuity correction
 
@@ -44,6 +48,31 @@ cor.test(df2d$ud95_intersect_percentage, df3d$udvol95_intersect_percentage,
        method = "spearman")
 #   There is a positive correlation between the percentage of intersection
 #   If a individual present high percentage of intersection in 2D, it will have too in 3D (in general)
+
+
+# UD 50 ---------------------
+# Normality test - Shapiro test
+shapiro.test((df2d$ud50_intersect_percentage))
+shapiro.test((df3d$udvol50_intersect_percentage))
+# NO normality p < 0.05
+
+
+# Both NO normal distribution -> Wilcoxon test signed-rank test
+wilcox.test(df2d$ud50_intersect_percentage, df3d$udvol50_intersect_percentage, 
+            paired = TRUE)
+
+summary(df2d$ud50_intersect_percentage)
+summary(df3d$udvol50_intersect_percentage)
+
+sd(df2d$ud50_intersect_percentage)
+sd(df3d$udvol50_intersect_percentage)
+
+
+
+
+
+
+
 
 
 
