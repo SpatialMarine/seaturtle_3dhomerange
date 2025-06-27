@@ -94,8 +94,9 @@ key # check it is loaded propertly
 area <- st_read(paste0(input_dir,"/gis/study_area.geojson"))
 
 # study years
-# 2012 and 2013 processed during code testing
-years <- (2014:2024)
+# 2012, 2013 and 2014 processed during code testing
+years <- (2015:2024)
+
 
 
 # 2) Get vessels info for the study area and datetime   -----------------------
@@ -308,7 +309,8 @@ for (y in 1:length(years)) {
   # Export vesselIds info by year as backup
   write.csv(vesselIds, paste0(outfolder,"/gfw_fishing_event_data_vesselIds_",year,"_L0.csv"), row.names = FALSE)
   
-  
+  # info
+  message(" -- Processing vessel ids finished -- \n\n")
   
   
   # --- API searchin finish | Process information ----
@@ -356,8 +358,10 @@ for (y in 1:length(years)) {
   daynight_class <- function(start_time, end_time, lat, lon) {
     
     # Check sun position by each minute during fishing operation
-    # calculate sequency of minutes
-    time_seq <- seq(from = start_time, to = end_time, by = "1 min")
+    # calculate sequence of 5 min
+    # Note: high consuming processing time, use 10 or 5 min intead 1 min
+    # due the data volume for process
+    time_seq <- seq(from = start_time, to = end_time, by = "5 min")
     
     # create dataframe from time sequency
     time_seq <- data.frame(datetime = time_seq)
@@ -388,21 +392,22 @@ for (y in 1:length(years)) {
   
   
   # apply function to fishing event data
+  # Note**: this function could take some time in processing if there are many of fishing events
+  # we use 5 min seq intead 1 min to reduce processing time
+  t <- Sys.time()
+  #info
+  cat( "· Processing day/night class for each fishing event \n")
   event_data[, daynight := mapply(daynight_class, start, end, lat, lon)]
+  
+  Sys.time() - t
   
   # 8) Export regenerated database for further spatial analysis ->
   #    day/night map fishing effort maps by fishing gear
   write.csv(event_data, paste0(outfolder,"/gfw_fishing_event_",year,"_L1.csv"), row.names = FALSE)
   
-  message (" -- Processing ",year," finished --")
+  message (" ------ Processing ",year," finished -----")
   
 }
-
-
-
-
-
-
 
 
 
