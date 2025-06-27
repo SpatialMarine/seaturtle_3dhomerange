@@ -1,0 +1,12 @@
+---
+title: "GFW_processing"
+author: "jmenblaz"
+format: html
+editor: visual
+---
+
+## Global Fishing Watch processing API data
+
+01 - Get and process summary raster data provide directly by GFW
+
+02 - Generate day and night specific apparent fishing effort maps by 'fishing event' raw data

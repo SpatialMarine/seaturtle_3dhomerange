@@ -1,9 +1,12 @@
 
-# Title:
+# Title: GFW API extract fishhing event info
 
 #-------------------------------------------------------------------------------
-# 02. GFW day / night apparent fishing effort maps -> extrct fishhing event info
+# 02. GFW day / night apparent fishing effort maps -> extract fishhing event info
 #-------------------------------------------------------------------------------
+
+# Javier Menéndez-Blázquez | @jmenblaz
+
 
 #' Use gfw::get_event function to extract gear_type and day and night information about the
 #' different apparent fishing events
@@ -19,17 +22,20 @@
 # by gear_types and day / and night time to detailed fishing activities analysis
 
 
+# --------------------------------------------------------------------
 
-
-# 1)
-
-# 2)
+# 1) Set study area and period 
+# 2) Get vessels info for the study area and datetime
+#   - L0 raw information got from GFW API
 
 # 3) Identify fishing gear for vessels id in apparent fishing events detected
-# 3) Combine fishing events with fishing gear info by $vesselId
+# 4) Combine fishing events with fishing gear info by $vesselId
+# 5) filter by fishing gear of interests
+# 6) Calculate apparent fishing hours of each fishing event
+# 7) Calculate day/night of apparent fishing operation by start and end time
+#   - L1 final data set with fishing event and its vessel and other associted information
 
-# 4) filter by fishing gear of interests
-# for our study we will filter by "TRAWLERS" and "DRIFTING_LONGLINES"
+
 
 
 
@@ -64,7 +70,6 @@ if (!dir.exists(outfolder)) dir.create(outfolder, recursive = TRUE)
 
 
 
-
 # 0) ------------------------------------------------------------------------------
 # APY key for GFW 
 # load in setup.R
@@ -78,6 +83,7 @@ key # check it is loaded propertly
 # b) Alternative use gfwr functions to obtain datasets
 
 
+
 # 1) Set study area and period--------------------------------------------------
 # select study area (created previously)                   ------------------
 
@@ -88,7 +94,8 @@ key # check it is loaded propertly
 area <- st_read(paste0(input_dir,"/gis/study_area.geojson"))
 
 # study years
-years <- (2012:2024)
+# 2012 and 2013 processed during code testing
+years <- (2014:2024)
 
 
 # 2) Get vessels info for the study area and datetime   -----------------------
@@ -109,7 +116,7 @@ for (y in 1:length(years)) {
   
   
   # ----------------------------------------------------------------------------------
-  # 2) get vessels info for the study area and datetime                   ----------
+  # 3) get vessels info for the study area and datetime                   ----------
   # Note that for extend area or hide temporal range APIs call doesn't work properlly
   # Make different call and combine theses results into same dataset
   
@@ -144,20 +151,21 @@ for (y in 1:length(years)) {
                               end_date = as.character(end_date),
                               region = area,
                               region_source = "USER_SHAPEFILE",
+                              quiet = TRUE,
                               key = key) #Authorization token. Can be obtained with gfw_auth function
         # check results --- 
         if (!is.null(ev) && nrow(ev) > 0) {
           event_list[[length(event_list) + 1]] <- ev
           cat(" · Fishing events: ", nrow(ev), "\n")
-          cat("\n",1)
+          cat("\n")
         } else {
           cat(" · No fishing event found for this period in the area\n")
-          cat("\n",1)
+          cat("\n")
         }
         
         # Time counter (timer) for API request pause time
         for (j in 1:2) {
-          cat(paste0("    · 00:00:0",j, " [Next search in 2s]\n"))
+          cat(paste0("    · 00:00:0",j, " [Next search in 2s]\r"))
           Sys.sleep(1)
         }
         cat(rep("\n",2))
@@ -171,7 +179,7 @@ for (y in 1:length(years)) {
         cat(rep("\n",1))
         
         for (j in 1:10) {
-          cat(paste0("    · 00:00:0",j, " [Next search in 10s]\n"))
+          cat(paste0("    · 00:00:0",j, " [Next search in 10s]\r"))
           Sys.sleep(1)
         }
         cat(rep("\n",2))
@@ -199,6 +207,9 @@ for (y in 1:length(years)) {
   Sys.time() - t 
   
   
+  
+  
+  
   # -------------------------------------------------------------------------------
   # 3) Identify fishing gear for vessels id in apparent fishing events detected
   
@@ -217,104 +228,90 @@ for (y in 1:length(years)) {
                           tonnageGt = NA,
                           stringsAsFactors = FALSE)
   
-  cat(nrow(vesselIds), " - Unique vesselIds in the fishing events")
-  
+  cat(nrow(vesselIds), " - Unique vesselIds in the fishing events \n")
   
   
   
   t <- Sys.time()
   
   for (i in 1:nrow(vesselIds)) {
-    # select id
-    id <- vesselIds$vesselId[i]
-    # info
-    cat("Searching information for vesselId:", id, " | vessel id:", i,"/",nrow(vesselIds), "\n")
     
-    success <- FALSE
-    while (!success) {
-      
+    id <- vesselIds$vesselId[i]
+    cat("Searching information for vesselId:", id, " | vessel id:", i, "/", nrow(vesselIds), "\n")
+    
+    # potential errors processing
+    success <- FALSE # error flag
+    attempt <- 1 # try two times if there is some error
+    
+        # 1º -> Potential API request error o conexion
+        # 2º -> Same, but if the error perxist, could be due that there is no info
+        #       about this id, then next id
+    
+    while (!success && attempt <= 2) {
       tryCatch({
+        # get vessel info
+        vesselId_info <- gfwr::get_vessel_info(search_type = "id",
+                                               ids = id,
+                                               quiet = TRUE,
+                                               key = key)
         
-        # get vessel info by its ID
-        # ≈0.5 secs per request (Not parell to avoid simultaneus APIs interacction)
-        vesselId_info <- get_vessel_info(search_type = "id",
-                                         ids = id, 
-                                         key = key)
-        cat("\n")
-        
-        if (nrow(vesselId_info$registryInfo) > 0) { # With vesselId data
+        if (nrow(vesselId_info$registryInfo) > 0 &&
+            "geartypes" %in% colnames(vesselId_info$registryInfo)) {
           
-          # get and add gear_type info into database
-          if (length(unique(vesselId_info$registryInfo$geartypes)) == 1) {
-            
-            vesselIds$gear_type[i] <- vesselId_info$registryInfo$geartypes
-            vesselIds$ship_name[i] <- vesselId_info$registryInfo$shipname
-            vesselIds$length_m[i]  <- vesselId_info$registryInfo$lengthM
-            vesselIds$flag[i]      <- vesselId_info$registryInfo$flag
-            vesselIds$ssvid[i]     <- vesselId_info$registryInfo$ssvid
-            vesselIds$imo[i]       <- vesselId_info$registryInfo$imo
-            vesselIds$tonnageGt[i]  <- vesselId_info$registryInfo$tonnageGt
-            
-          } else {
-            # select last register if there are various records for same vesselId
-            # GFW get info data is already sort by last message
-            # No sorting is necessary
-            vesselIds$gear_type[i] <- vesselId_info$registryInfo$geartypes[1] 
-            vesselIds$ship_name[i] <- vesselId_info$registryInfo$shipname[1]
-            vesselIds$length_m[i]  <- vesselId_info$registryInfo$lengthM[1]
-            vesselIds$flag[i]      <- vesselId_info$registryInfo$flag[1]
-            vesselIds$ssvid[i]     <- vesselId_info$registryInfo$ssvid[1]
-            vesselIds$imo[i]       <- vesselId_info$registryInfo$imo[1]
-            vesselIds$tonnageGt[i]  <- vesselId_info$registryInfo$tonnageGt[1]
-          }
+          reg <- vesselId_info$registryInfo
           
+          vesselIds$gear_type[i]  <- reg$geartypes[1]
+          vesselIds$ship_name[i]  <- reg$shipname[1]
+          vesselIds$length_m[i]   <- reg$lengthM[1]
+          vesselIds$flag[i]       <- reg$flag[1]
+          vesselIds$ssvid[i]      <- reg$ssvid[1]
+          vesselIds$imo[i]        <- reg$imo[1]
+          vesselIds$tonnageGt[i]  <- reg$tonnageGt[1]
           
-          # Time counter (timer) for API request pause time
-          for (j in 1:2) {
-            cat(paste0("    · 00:00:0",j, " [Next search in 2s]\r"))
-            Sys.sleep(1)
-          }
-          cat(rep("\n",2))
+          success <- TRUE
+          cat(" · Success \n")
           
         } else {
-          cat(" · No vesseld information for this vessel id:",id, "\n")
-          cat("\n")
-          
-          # Time counter (timer) for API request pause time
-          for (j in 1:2) {
-            cat(paste0("    · 00:00:0",j, " [Next vessel id search in 2s]\r"))
-            Sys.sleep(1)
-          }
-          cat(rep("\n",2))
-          
-          next # next id
+          cat(" · No vessel information or missing columns for this id.\n")
+          success <- TRUE  # Succes even if there are no info after two attempts
         }
         
+        # error handling
       }, error = function(e) {
-        message(" ··· Error in API request; vesselId:", id, " -> ", conditionMessage(e), "\n")
-        cat(rep("\n",1))
-        
-        for (j in 1:10) {
-          cat(paste0("    · 00:00:0",j, " [Next search in 10s]\r"))
-          Sys.sleep(1)
-        }
-        cat(rep("\n",2))
+        message(" · Error (attempt ", attempt, "): ", conditionMessage(e))
       })
       
+      if (!success) {
+        for (j in 1:5) {
+          cat(paste0("    · 00:00:0",j, " [retrying in 5s]\r"))
+          Sys.sleep(1)
+        }
+        cat("\n\n")
+      }
+      attempt <- attempt + 1
     }
-   
+    
+    # After process or attempts -> Succes, next into two seconds
+    if (success) {
+      
+      for (j in 1:2) {
+        cat(paste0("    · 00:00:0",j, " [Next search in 2s]\r"))
+        Sys.sleep(1)
+      }
+      cat("\n\n")
+    }
   }
   
   Sys.time() - t
   
-  # Export vesselIds info
-  # export event data by year as backup
+
+  # Export vesselIds info by year as backup
   write.csv(vesselIds, paste0(outfolder,"/gfw_fishing_event_data_vesselIds_",year,"_L0.csv"), row.names = FALSE)
   
   
   
-  # --- API searchin finish | Process information ----
   
+  # --- API searchin finish | Process information ----
   
   # 4) Combine fishing events with fishing gear info by $vesselId ----------------
   event_data <- event_data %>%
@@ -329,8 +326,8 @@ for (y in 1:length(years)) {
   
   # 6) Calculate apparent fishing hours of each fishing event --------------------
   # check POSIXct class in datetime info
-  class(event_data$start)
-  class(event_data$end)
+  # class(event_data$start)
+  # class(event_data$end)
   
   # calculate apparent fishing effort hours
   event_data$fishing_effort_hour <- as.numeric(difftime(event_data$end, event_data$start, units = "hours"))
@@ -395,7 +392,7 @@ for (y in 1:length(years)) {
   
   # 8) Export regenerated database for further spatial analysis ->
   #    day/night map fishing effort maps by fishing gear
-  write.csv(vesselIds, paste0(outfolder,"/gfw_fishing_event_",year,"_L1.csv"), row.names = FALSE)
+  write.csv(event_data, paste0(outfolder,"/gfw_fishing_event_",year,"_L1.csv"), row.names = FALSE)
   
   message (" -- Processing ",year," finished --")
   
