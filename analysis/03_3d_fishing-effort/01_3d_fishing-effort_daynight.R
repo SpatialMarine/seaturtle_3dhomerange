@@ -7,13 +7,16 @@
 
 
 # Fishing effort volume
-# calculate fishing effort volume for each tagged sea-turtle
+# calculate apparent fishing effort volume for each tagged sea-turtle by day and night
+#  (see data processing scripts for how to obtain day and night night from GFW API)
+
 
 # ---------------------------------------------------------------------------
 
+# same steps than for the global (day + night fishing effort)
 
-# 1) Extract fishing effort for extent of seaturtle kde estimate
-  # 1.1) Resample fishing effort toluto kde resion (e.,g 5x5 km2) and same extension
+# 1) Extract fishing effort for extent of seaturtle day and night kde estimates
+  # 1.1) Resample fishing effort to kde resolution (e.,g 5x5 km2) and same extension
 
 # 2) Create a raster stack following the different depths of fishing
   # 2.1) depth with no fishing values 0
@@ -21,7 +24,7 @@
 # 3) For trawlers fisheries,
 #   3.1) Create a rasterbrick per depth range
 #        using a similar raster reference that fishing 2D
-#        filter trawler fishing effort by bathimetry ranges
+#        filter trawler fishing effort by bathymetry ranges
 
 
 

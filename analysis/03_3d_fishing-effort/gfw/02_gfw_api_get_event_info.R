@@ -94,8 +94,8 @@ key # check it is loaded propertly
 area <- st_read(paste0(input_dir,"/gis/study_area.geojson"))
 
 # study years
-# 2012, 2013 and 2014 processed during code testing
-years <- (2015:2024)
+
+years <- (2020:2024)
 
 
 
