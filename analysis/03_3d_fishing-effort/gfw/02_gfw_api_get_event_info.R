@@ -95,9 +95,7 @@ area <- st_read(paste0(input_dir,"/gis/study_area.geojson"))
 
 # study years
 
-years <- (2020:2024)
-
-
+years <- c(2012:2024)
 
 # 2) Get vessels info for the study area and datetime   -----------------------
 
@@ -207,12 +205,28 @@ for (y in 1:length(years)) {
   
   Sys.time() - t 
   
+}   # finished first step of get potential fishinf envent for time period and study area
   
   
   
+
+
+# -------------------------------------------------------------------------------
+# 3) Identify fishing geart from vessels id in apparent fishing events detected
+
+# Note: Not recommended for paralell computing to avoid simultaneous API calls
+# Note: Some vesselIDs don't have vessel info about name, flag, imo, length, etc
+#       but its contains info about gear type
+
+  # 2) Get vessels info for the study area and datetime   -----------------------
   
-  # -------------------------------------------------------------------------------
-  # 3) Identify fishing gear for vessels id in apparent fishing events detected
+for (y in 1:length(years)) {
+  
+  # 
+  year <- years[[y]]
+    
+  # read event data identified
+  event_data <- read.csv(paste0(outfolder,"/gfw_fishing_event_data_",year,"_L0.csv"))
   
   # for all event data compiled select uniques IDs
   # Use unique vesselId in order to reduce processing time due that a vesselId 
@@ -229,7 +243,8 @@ for (y in 1:length(years)) {
                           tonnageGt = NA,
                           stringsAsFactors = FALSE)
   
-  cat(nrow(vesselIds), " - Unique vesselIds in the fishing events \n")
+  cat(nrow(vesselIds), " - Unique vesselIds in the fishing events - year:",year,"\n")
+  
   
   
   
@@ -255,20 +270,63 @@ for (y in 1:length(years)) {
                                                ids = id,
                                                quiet = TRUE,
                                                key = key)
+    
+    
+        # check point about vesselID info obtained 
+        if (nrow(vesselId_info$combinedSourcesInfo) > 0 &&
+            "geartypes_name" %in% colnames(vesselId_info$combinedSourcesInfo)) {
+          
+          # filter by vesselID (same MMSI could gather variuos vesselID)
+          combinedSourcesInfo <- vesselId_info[["combinedSourcesInfo"]]  %>% 
+            dplyr::filter(vesselId == id) 
+          
+          # select the information about the gear type by the year of fishing event
+          # and the historic information of the combine sourced of GFW in order
+          # to create a perfect match
+          
+          # first filter by geartypes
+          combinedSourcesInfo <- combinedSourcesInfo %>% filter(year >= geartypes_yearFrom & year <= geartypes_yearTo) %>% 
+            # calculate distance between from-to years and year of study
+            mutate(dist_year = abs(((geartypes_yearFrom + geartypes_yearTo)/2) - year)) %>%
+            # take closes interval year
+            slice_min(dist_year, n = 1)
+          
+          
+          # check number of different results for gear type
+          if (length(unique(combinedSourcesInfo$geartypes_name)) == 1) {
+            # gear type info 
+            vesselIds$gear_type[i]  <- combinedSourcesInfo$geartypes_name[1] 
+            # vessel info
+            vesselIds$ship_name[i]  <- vesselId_info$registryInfo$shipname[1]
+            vesselIds$length_m[i]   <- vesselId_info$registryInfo$lengthM[1]
+            vesselIds$flag[i]       <- vesselId_info$registryInfo$flag[1]
+            vesselIds$ssvid[i]      <- vesselId_info$registryInfo$ssvid[1]
+            vesselIds$imo[i]        <- vesselId_info$registryInfo$imo[1]
+            vesselIds$tonnageGt[i]  <- vesselId_info$registryInfo$tonnageGt[1]
+            
+          } else {
+            # use year of the fishing event for filter by shiptypes_year information
+            combinedSourcesInfo <- combinedSourcesInfo %>% filter(year >= shiptypes_yearFrom & year <= shiptypes_yearTo) %>% 
+              # calculate distance between from-to years and year of study
+              # temporal field
+              mutate(dist_year = abs(((shiptypes_yearFrom + shiptypes_yearTo)/2) - year)) %>%
+              # take closes interval year
+              slice_min(dist_year, n = 1)
+            
+            # and obtain information about fishing gear_type and vessel info for the first record
+            # just in case its process return more than one (not more potential filter could be apply)
+            # gear type info 
+            vesselIds$gear_type[i]  <- combinedSourcesInfo$geartypes_names[1] 
+            # vessel info
+            vesselIds$ship_name[i]  <- vesselId_info$registryInfo$shipname[1]
+            vesselIds$length_m[i]   <- vesselId_info$registryInfo$lengthM[1]
+            vesselIds$flag[i]       <- vesselId_info$registryInfo$flag[1]
+            vesselIds$ssvid[i]      <- vesselId_info$registryInfo$ssvid[1]
+            vesselIds$imo[i]        <- vesselId_info$registryInfo$imo[1]
+            vesselIds$tonnageGt[i]  <- vesselId_info$registryInfo$tonnageGt[1]
+          }
         
-        if (nrow(vesselId_info$registryInfo) > 0 &&
-            "geartypes" %in% colnames(vesselId_info$registryInfo)) {
-          
-          reg <- vesselId_info$registryInfo
-          
-          vesselIds$gear_type[i]  <- reg$geartypes[1]
-          vesselIds$ship_name[i]  <- reg$shipname[1]
-          vesselIds$length_m[i]   <- reg$lengthM[1]
-          vesselIds$flag[i]       <- reg$flag[1]
-          vesselIds$ssvid[i]      <- reg$ssvid[1]
-          vesselIds$imo[i]        <- reg$imo[1]
-          vesselIds$tonnageGt[i]  <- reg$tonnageGt[1]
-          
+          # flag
           success <- TRUE
           cat(" · Success \n")
           
@@ -283,8 +341,8 @@ for (y in 1:length(years)) {
       })
       
       if (!success) {
-        for (j in 1:5) {
-          cat(paste0("    · 00:00:0",j, " [retrying in 5s]\r"))
+        for (j in 1:3) {
+          cat(paste0("    · 00:00:0",j, " [retrying in 3s]\r"))
           Sys.sleep(1)
         }
         cat("\n\n")
@@ -295,8 +353,8 @@ for (y in 1:length(years)) {
     # After process or attempts -> Succes, next into two seconds
     if (success) {
       
-      for (j in 1:2) {
-        cat(paste0("    · 00:00:0",j, " [Next search in 2s]\r"))
+      for (j in 1:1) {
+        cat(paste0("    · 00:00:0",j, " [Next search in 1s]\r"))
         Sys.sleep(1)
       }
       cat("\n\n")
@@ -313,7 +371,7 @@ for (y in 1:length(years)) {
   message(" -- Processing vessel ids finished -- \n\n")
   
   
-  # --- API searchin finish | Process information ----
+  # --- API searching finish | Process information ----
   
   # 4) Combine fishing events with fishing gear info by $vesselId ----------------
   event_data <- event_data %>%

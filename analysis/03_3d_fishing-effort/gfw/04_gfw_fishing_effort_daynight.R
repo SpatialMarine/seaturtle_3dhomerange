@@ -53,6 +53,8 @@ for (dt in daynight){
     file_name <- tolower(paste0(g, "_fishing_effort_", dt, ".tif"))    # lowercase
     writeRaster(r, filename = paste0(input_dir,"/gfw/",file_name), overwrite = TRUE)
     
+    # read again
+    r <- terra::rast(paste0(input_dir,"/gfw/",file_name))
     
     # and export summary plot -----------------
     # extension of raster
@@ -67,26 +69,29 @@ for (dt in daynight){
     names(r)[3] <- "fishing_effort" # column name change
     
     
-
-    
     # day night color pallets
     if (dt == "day"){ 
-      map_fill_color <- "#e4e3e1"
-      map_line_color <- "grey80"
-      background_color <- "#70889b"
+      map_fill_color <- "#11161D"
+      map_line_color <- "grey10"
+      background_color <- "#1e2632"
       # viridis colors
-      option_color <- c('#FFEC8B','#FFA07A','#8B3626','#130705') }
+      option_color <- "F"
+      # option_color <- c("#f0efed", '#D9D8C5', '#C9C8B1', '#FFA07A', '#CC6A4F', '#8B3626', '#4A1B13', '#060202')
+      }
+
     
     if  (dt == "night"){ 
       map_fill_color <- "#11161D"
       map_line_color <- "grey10"
       background_color <- "#1e2632"
         # viridis colors
-      option_color <- c('#0c0f13', '#8B3626', '#FFA07A', '#FFEC8B') }
-
-  
-      #################### CAMBIAR PALETA COLORES DIA Y NOCHE
+      option_color <- "F"
+      # custom color
+      # option_color <- c("#11161D","#14324A","#1C4E4D","#84B03C","#EAD94C","#fffee6")}
+      # option_color <-c("#1e2632", "#2a4261", "#416192", "#5B8FC5", "#72B5E5", "#A0D9FF", "#e5f5ff") 
+      }
       
+    
   
     # Create a ggplot object
     p <- ggplot() +
@@ -108,21 +113,24 @@ for (dt in daynight){
       
       
       # ramp color (virids)
-      # scale_fill_gradientn(colors = color_ramp, trans = "log10", 
-      #                      name = "Fishing effort (Hours)") +
-      # scale_fill_viridis_c(option = option_color, trans="log10",
-      #                      # dark legend border or guidebar
-      #                      guide = guide_colorbar(frame.colour = "grey5", 
-      #                                             ticks.colour = "grey5")) +
+      scale_fill_viridis_c(option = option_color, trans="log10",
+                           # dark legend border or guide bar,
+                           # legend scale fixed
+                           limits = c(1e-2, 1e+3),  # de 0.1 a 100
+                           breaks = c(1e-1, 1e+0, 1e+1, 1e+2),  # 0.1, 1, 10, 100, 1000
+                           labels = scales::label_scientific(),
+                           # legend theme
+                           guide = guide_colorbar(frame.colour = "grey5",
+                                                  ticks.colour = "grey5")) +
       
-      scale_fill_gradientn(
-        colours = option_color, 
-        trans = "log10",
-        guide = guide_colorbar(frame.colour = "grey5", ticks.colour = "grey5")
-      ) +
-    
+      # scale_fill_gradientn(
+      #   colours = option_color, 
+      #   trans = "log10",
+      #   guide = guide_colorbar(frame.colour = "grey5", ticks.colour = "grey5")
+      # ) +
+      # 
       
-      # theme
+      # theme if we use custom ramp color
       theme_bw() +
       # Customize legend and axis titles
       labs(fill = "Fishing effort (Hours)",  # legend title
@@ -151,12 +159,6 @@ for (dt in daynight){
     ggsave(p_png, p, width=23, height=11, units="cm", dpi=350)
     # ggsave(p_svg, p, width=23, height=18, units="cm", dpi=350)
     
-    
-
-    
-    
-
-  
   }
 }
 

@@ -7,7 +7,10 @@ editor: visual
 
 ## Global Fishing Watch processing API data
 
-01 - Get and process summary raster data provide directly by GFW
+FInal version:\
+Using "hauling" position of GFW
+
+01 - Get and process summary raster data provide directly by GFW API (Fishing effort)
 
 02 - Generate day and night specific apparent fishing effort maps by 'fishing event' raw data
 
@@ -19,8 +22,10 @@ editor: visual
 
         See code,; resume: if all the fishing operation was carried out during night -\> night \# Note: if all the fishing operation was carried out during day -\> day \# Note: if fishing operation was carried out between day and night, I calculate the proportion of time for night and day -\> \>50% is assigned for daynight period (The function cextract per each min of fishing operation the sun elevation respect the horizont and then calculate the proportion of time that sun is over or under of it.
 
-    # 7) Calculate day/night of apparent fishing operation by start and end time ---
+    ### Calculate day/night of apparent fishing operation by start and end time ---
 
     \# Note: if all the fishing operation was carried out during night -\> night \# Note: if all the fishing operation was carried out during day -\> day \# Note: if fishing operation was carried out between day and night, I calculate \# the proportion of time for night and day -\> \>50% is assigned for daynight period \# · example: 2 hours day and 3 hours night -\> night
 
     02.2 Mapping fishing event points and derived information into 1x1 raster
+
+### 
