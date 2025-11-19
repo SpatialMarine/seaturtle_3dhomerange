@@ -7,8 +7,8 @@ editor: visual
 
 ## Global Fishing Watch processing API data
 
-FInal version:\
-Using "hauling" position of GFW
+\
+Using "fishing event" position of GFW in order to obtain day/night information
 
 01 - Get and process summary raster data provide directly by GFW API (Fishing effort)
 
@@ -16,16 +16,20 @@ Using "hauling" position of GFW
 
 -   02.1 Get and process API GFW fishing event and vessels id information
 
-    -   Note that vessel ID detectd in fishing events but without information about their gear type that not taken into account for further analysis (% of this vesseli ID without information could be calculate using L0 data for each year.
+    -   Note that vessel ID detected in fishing events but without information about their gear type that not taken into account for further analysis (% of this vessels ID without information could be calculate using L0 data for each year).
 
-    -   Class day and night for each fishing event (longlines and trawlers) detected:
+    -   Class day and night for each fishing event (long-lines and trawlers) detected:
 
-        See code,; resume: if all the fishing operation was carried out during night -\> night \# Note: if all the fishing operation was carried out during day -\> day \# Note: if fishing operation was carried out between day and night, I calculate the proportion of time for night and day -\> \>50% is assigned for daynight period (The function cextract per each min of fishing operation the sun elevation respect the horizont and then calculate the proportion of time that sun is over or under of it.
+        See code,; resume: if all the fishing operation was carried out during night -\> night \# Note: if all the fishing operation was carried out during day -\> day \# Note: if fishing operation was carried out between day and night, I calculate the proportion of time for night and day -\> \>50% is assigned for day-night period (The function extract per each min of fishing operation the sun elevation respect the horizon and then calculate the proportion of time that sun is over or under of it.
 
     ### Calculate day/night of apparent fishing operation by start and end time ---
 
-    \# Note: if all the fishing operation was carried out during night -\> night \# Note: if all the fishing operation was carried out during day -\> day \# Note: if fishing operation was carried out between day and night, I calculate \# the proportion of time for night and day -\> \>50% is assigned for daynight period \# · example: 2 hours day and 3 hours night -\> night
+    If all the fishing operation was carried out during night -\> night
 
-    02.2 Mapping fishing event points and derived information into 1x1 raster
+    If all the fishing operation was carried out during day -\> day
+
+    if fishing operation was carried out between day and night, I calculate the proportion of time for night and day == \>50% is assigned for day-night period (example: 2 hours day and 3 hours night -\> night)
+
+    -   02.2 Mapping fishing event points and derived information into 1x1 raster for further analysis
 
 ### 
