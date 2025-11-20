@@ -7,7 +7,7 @@ project <- "seaturtle_3dhomerange"
 
 # set computer
 cpu <- "jmb"
-
+cpu <- "jmbSML"
 
 # packages
 
@@ -15,6 +15,12 @@ cpu <- "jmb"
 # devtools::install_github("dmarch/animalsensor")
 # remotes::install_github("jmlondon/pathroutr")
 # install.packages("pathroutr", repos = "https://jmlondon.r-universe.dev", dependencies = TRUE)
+
+# Install GFW R package
+if (!require("remotes"))
+  install.packages("remotes")
+
+remotes::install_github("GlobalFishingWatch/gfwr", dependencies = TRUE)
 
 
 # Load required packages
@@ -67,7 +73,10 @@ locale <- "en_US.UTF-8"
 
 # ------------------------------------------------------------------------------
 # 1. Set main data paths ---------
-if(cpu == "jmb") main_dir <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/",project)
+if(cpu == "jmb")    main_dir <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/",project)
+if(cpu == "jmbSML") main_dir <- paste0("C:/Users/jmb/SML Dropbox/gitdata/seaturtle_3dhomerange")
+
+
 if (!dir.exists(main_dir)) dir.create(main_dir, recursive = TRUE)
 
 # from SML Dropbox
@@ -85,6 +94,8 @@ if (!dir.exists(output_dir)) dir.create(output_dir, recursive = TRUE)
 # ------------------------------------------------------------------------------
 # 3. Global Fishing Watch API key
 if(cpu == "jmb")   f <- "C:/Users/J. Menéndez Blázquez/Desktop/R/gfw_api/gfw_api.txt"
+if(cpu == "jmbSML") f <- "C:/Users/jmb/R/gfw_api.txt"
+
 key <- paste(readLines(f, warn = FALSE), collapse = "")
 
 
