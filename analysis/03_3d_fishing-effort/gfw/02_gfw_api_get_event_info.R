@@ -220,7 +220,7 @@ for (y in 1:length(years)) {
 
   # 2) Get vessels info for the study area and datetime   -----------------------
   
-for (y in 3:length(years)) {
+for (y in 1:length(years)) {
   
   # 
   year <- years[[y]]
