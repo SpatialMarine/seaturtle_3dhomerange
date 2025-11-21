@@ -33,7 +33,7 @@
 # 5) filter by fishing gear of interests
 # 6) Calculate apparent fishing hours of each fishing event
 # 7) Calculate day/night of apparent fishing operation by start and end time
-#   - L1 final data set with fishing event and its vessel and other associted information
+#   - L1 final data set with fishing event and its vessel and other associated information
 
 
 
