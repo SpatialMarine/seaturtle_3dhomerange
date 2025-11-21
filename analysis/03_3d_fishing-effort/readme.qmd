@@ -13,6 +13,8 @@ The yearly mean fishing effort for all this period has been used as a input for 
 
 This data represent a 2D fishing effort for its overlap with 2D kde calculated.
 
+see GFW folder in order to download and processing data for further analysis
+
 ## 2- Fishing effort 3D processing
 
 From 2D fishing effort to 3D using a specific metier or fishing gear / art specific depth.

@@ -6,7 +6,7 @@
 project <- "seaturtle_3dhomerange"
 
 # set computer
-cpu <- "jmb"
+# cpu <- "jmb"
 cpu <- "jmbSML"
 
 # packages
@@ -20,7 +20,7 @@ cpu <- "jmbSML"
 if (!require("remotes"))
   install.packages("remotes")
 
-remotes::install_github("GlobalFishingWatch/gfwr", dependencies = TRUE)
+# remotes::install_github("GlobalFishingWatch/gfwr", dependencies = TRUE)
 
 
 # Load required packages
@@ -81,6 +81,7 @@ if (!dir.exists(main_dir)) dir.create(main_dir, recursive = TRUE)
 
 # from SML Dropbox
 if (cpu == "jmb") carto_dir <- ("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/data/carto")
+if(cpu == "jmbSML") carto_dir <- ("C:/Users/jmb/SML Dropbox/data/carto")
 
 # ------------------------------------------------------------------------------
 # 2. Create data paths for planet-api R project --------------------------------
@@ -102,7 +103,7 @@ key <- paste(readLines(f, warn = FALSE), collapse = "")
 # ------------------------------------------------------------------------------
 # 4. GEBCO Bathymetry
 # if(cpu == "jmb")  bath <- paste0(input_dir, "/gis/gebco/mediterranean_sea_gebco_2024.tif")
-
+# if(cpu == "jmbSML") bath <- paste0(input_dir, "/gis/gebco/mediterranean_sea_gebco_2024.tif")
 
 
 

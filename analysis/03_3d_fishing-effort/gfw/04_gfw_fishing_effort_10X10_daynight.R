@@ -11,7 +11,7 @@
 # Combien differenrt processed .tif into a sigle one day and night raster of 
 # apparent fishing effort by fishing gear
 
-# 13 years of fishing effort (1x1 km2)
+# 13 years of fishing effort (10x10 km2)
 
 # ------------------------------------------------------------------------------
 
@@ -40,17 +40,24 @@ for (dt in daynight){
     files <- list.files(paste0(input_dir,"/gfw/daynight"), pattern = paste0(dt,"_",g,".tif"), full.names = TRUE)
     # read rasters as raster stack and sum
     rstack <- terra::rast(files)
-    # check 
-    # plot(rstack)
-    r <- mean(rstack)
     
-    # values 0 as NA
-    r[r <= 0] <- NA
+    # ---------------------------------------------
+    # resample to 10x10 km ----------------------------------------------
+      rstack <- terra::project(rstack, "EPSG:3035")
+      
+      # reference raster 10x10 km 
+      r_reference <- terra::rast(rstack, res = 10000) # meters
+      
+      # resample raster
+      r <- terra::resample(rstack, r_reference, method = "bilinear")
+      r <- mean(r)
+      
+      r[r <= 0] <- NA
+          
+    # plot(r) # -----------------------------------------
     
-    # plot(r)
-    
-    # export
-    file_name <- tolower(paste0(g, "_fishing_effort_", dt, ".tif"))    # lowercase
+    # export resample fishing effort file
+    file_name <- tolower(paste0(g, "_fishing_effort_10x10", dt, ".tif"))    # lowercase
     writeRaster(r, filename = paste0(input_dir,"/gfw/",file_name), overwrite = TRUE)
     
     # read again
@@ -153,7 +160,7 @@ for (dt in daynight){
     p
     
     # export plot as png:
-    png_file <- tolower(paste0(g, "_fishing_effort_summary_", dt, ".png"))
+    png_file <- tolower(paste0(g, "_fishing_effort_summary_10x10_", dt, ".png"))
     p_png <- paste0(input_dir,"/gfw/", png_file)
     
     ggsave(p_png, p, width=23, height=11, units="cm", dpi=350)

@@ -243,15 +243,15 @@ for (dnp in 1:length(daynight_pattern)) {
       # export raster files ------ 
       # 1) fishing interact
       rst_file <- paste0(output_data,"/",organismID,"_2d_kde_fishing_interact_",fishing_gear,"_",dn,".tif")
-      writeRaster(fishing_interact, rst_file, overwrite=TRUE)
+      writeRaster(fishing_interact, rst_file, overwrite = TRUE)
       
       # 2) kde fishing intersect
       rst_file <- paste0(output_data,"/",organismID,"_2d_kde_fishing_intersect_",fishing_gear,"_",dn,".tif")
-      writeRaster(kde_fishing_intersect , rst_file, overwrite=TRUE)
+      writeRaster(kde_fishing_intersect , rst_file, overwrite = TRUE)
       
       # 3) kde fishing difference
       rst_file <- paste0(output_data,"/",organismID,"_2d_kde_fishing_difference_",fishing_gear,"_",dn,".tif")
-      writeRaster(kde_fishing_simdif, rst_file, overwrite=TRUE)
+      writeRaster(kde_fishing_simdif, rst_file, overwrite = TRUE)
       
     }
   }   
