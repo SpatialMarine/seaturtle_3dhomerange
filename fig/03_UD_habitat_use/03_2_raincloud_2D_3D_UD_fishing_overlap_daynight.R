@@ -9,6 +9,8 @@
 # 1) Raincloud and boxplot (numerical results in final figures for the study in 05_tatistics_analysis/01.R)
 #   for Wilcoxon test differences between fishing overlap and % of overlap in 2D and 3D.
 
+# For day and night results
+
 
 library(ggplot2)
 library(dplyr)
@@ -81,29 +83,30 @@ df_summary <- df_combined %>%
 p <- ggplot(df_combined, aes(x = Dimension, y = Intersection, fill = Dimension)) +
         # # # Raincloud (half-eye)
         # ggdist::stat_halfeye(aes(color = Dimension),
-        #                      trim = FALSE,
-        #                      adjust = 0.4,
-        #                      width = 0.5,
+        #                      trim = TRUE,
+        #                      adjust = 1,
+        #                      width = 1,
         #                      .width = 0,
         #                      alpha = 0.5,
         #                      justification = -0.0,
         #                      point_color = NA) +
         # Jitter points
-        # geom_jitter(aes(color = Dimension),
-        #             shape = 21,
-        #             stroke = 0.9,
-        #             alpha = 0.22,
-        #             size = 1.6,
-        #             position = position_jitter(width = 0.22)) +
+        geom_jitter(aes(color = Dimension),
+                    shape = 21,
+                    stroke = 0.9,
+                    alpha = 0.15,
+                    size = 2,
+                    position = position_jitter(width = 0.22)) +
         # Boxplot
         geom_boxplot(width = 0.3,
                      outlier.shape = 16,
                      outlier.color = "grey5",
+                     outliers = FALSE,
                      alpha = 0.85,
                      color = "grey5",
                      size = 0.5) +
         # significant
-        stat_compare_means(
+        ggpubr::stat_compare_means(
           comparisons = list(c("2D", "3D")),
           label = "p.signif",
           method = "wilcox.test",
@@ -115,7 +118,7 @@ p <- ggplot(df_combined, aes(x = Dimension, y = Intersection, fill = Dimension))
         scale_fill_manual(values = c("2D" = "#FF9678", "3D" = "#41436A")) +
         scale_color_manual(values = c("2D" = "#FF9678", "3D" = "#41436A")) +
         # scales axis
-        scale_y_continuous(limits = c(0, 55), breaks = seq(0, 55, by = 10)) +
+        scale_y_continuous(limits = c(0, 80), breaks = seq(0, 80, by = 10)) +
         # facets
         facet_grid(UD ~ fishing_gear + daynight, labeller = labeller(
           fishing_gear = c("LL" = "Longlines", "TW" = "Trawlers"),
@@ -124,9 +127,9 @@ p <- ggplot(df_combined, aes(x = Dimension, y = Intersection, fill = Dimension))
         # theme
         theme_bw() +
         theme(
-          axis.text.y = element_text(size = 11, family = "Arial", color = "grey10"),
+          axis.text.y = element_text(size = 10, family = "Arial", color = "grey10"),
           axis.text.x = element_text(size = 12, vjust = -1, face = "bold", color = "grey10"),
-          axis.title.y = element_text(size = 12, vjust = 1.2, family = "Arial"),
+          axis.title.y = element_text(size = 11, vjust = 1.2, family = "Arial"),
           axis.title.x = element_blank(),
           axis.ticks = element_line(size = 0.5),
           axis.ticks.length.y = unit(7, "pt"),
@@ -174,7 +177,7 @@ p
 # export / save plot
 p_png <- paste0(output_fig,"/","fig_raincloud_overlap_UDs_daynight.png")
 p_svg <- paste0(output_fig,"/","fig_raincloud_overlap_UDs_danight.svg")
-ggsave(p_png, p, width=22, height=14, units="cm", dpi=350, bg="white")
-ggsave(p_svg, p, width=22, height=14, units="cm", dpi=350, bg="white")
+ggsave(p_png, p, width=22, height=15, units="cm", dpi=350, bg="white")
+ggsave(p_svg, p, width=22, height=15, units="cm", dpi=350, bg="white")
 
 

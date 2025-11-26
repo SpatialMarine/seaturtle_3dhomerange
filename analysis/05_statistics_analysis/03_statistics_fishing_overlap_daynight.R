@@ -7,7 +7,7 @@
 
 # Using volumes/area  percentage and difference values calculated previously
 
-# Day / Night values.
+# Day / Night values provided bu the overlap with GFW fishing events
 
 library(dplyr)
 
@@ -37,7 +37,7 @@ df3d_night <- df3d[df3d$daynight == "night", ]
 # 1.1) Diferences between day/night 2D and 3D ---------------------------------
 
 # -------------------
-# 1.1.1) UD95 - UD95 - UD95 
+# 1.1.1) UD95
 
 # Normality test - Shapiro test
 # -- NO normality ==  p < 0.05
@@ -52,7 +52,7 @@ shapiro.test(df3d_night$udvol95_intersect_percentage)
 
 # Both NO normal distribution -> Wilcoxon test signed-rank test
 
-# Day 2D/3D --------------
+####  Day 2D/3D --------------
 wilcox.test(df2d_day$ud95_intersect_percentage,
             df3d_day$udvol95_intersect_percentage,
             paired = TRUE)
@@ -68,7 +68,7 @@ sd(df3d_day$udvol95_intersect_percentage)
   # 
   #     data:  df2d_day$ud95_intersect_percentage and 
   #            df3d_day$udvol95_intersect_percentage
-  #     V = 1415, p-value = 4.934e-07 *** p < 0.05
+  #     V = 1477, p-value = 3.12e-08 *** p < 0.05
   #     alternative hypothesis: true location shift is not equal to 0
   #     Note: difference between data is not 0 and significant
 
@@ -78,12 +78,21 @@ sd(df3d_day$udvol95_intersect_percentage)
 # correlation test
 cor.test(df2d_day$ud95_intersect_percentage, df3d_day$udvol95_intersect_percentage, 
          method = "spearman")
+
+# S = 7930.6, p-value = 1.89e-10
+# rho = 0.7289598
+
+
 #  ✔  There is a positive correlation between the percentage of intersection
-#  ✔  If a individual present high percentage of intersection in 2D, it will have too in 3D (in general)
+#  ✔  If a individual present high percentage of intersection in 2D, it will have too in 3D 
+# for DAY
+
 #  ✔ Individuos que presentan un mayor solapamiento en el espacio 2D, 
 #   también tienden a presentar mayor solapamiento en 3D durante el día.
 
-# Night 2D/3D --------- 
+
+
+######  Night 2D/3D --------- 
 wilcox.test(df2d_night$ud95_intersect_percentage,
                          df3d_night$udvol95_intersect_percentage,
                          paired = TRUE)
@@ -125,7 +134,7 @@ shapiro.test((df3d_day$udvol50_intersect_percentage))
 wilcox.test(df2d_day$ud50_intersect_percentage, df3d_day$udvol50_intersect_percentage, 
             paired = TRUE)
 # results:
-# V = 1389, p-value = 1.459e-06
+# V = 1459, p-value = 7.133e-08
 # ✔  Higher values of % of intersection in 2D during the  DAY than 3D for UD50
 
 summary(df2d_day$ud50_intersect_percentage)
@@ -138,13 +147,15 @@ sd(df3d_day$udvol50_intersect_percentage)
 cor.test(df2d_day$ud50_intersect_percentage, df3d_day$udvol50_intersect_percentage, 
          method = "spearman")
 
+# S = 13801, p-value = 2.849e-05
+
 #   There is a positive correlation between the percentage of intersection
 #   ✔  If a individual present high percentage of intersection in 2D,
 #   ✔   t will have too in 3D  for the night (and for UD95)
 
 
 
-# UD50 - Night 2D/3D ---------------------------
+# UD50 - NIGHT 2D/3D ---------------------------
 # Normality test - Shapiro test
 shapiro.test((df2d_night$ud50_intersect_percentage))
 shapiro.test((df3d_night$udvol50_intersect_percentage))
@@ -178,11 +189,16 @@ cor.test(df2d_night$ud50_intersect_percentage, df3d_night$udvol50_intersect_perc
 
 
 
+
+
+
+
+
 # -----------------------------------------------------------------------------
 # 1.2) For potential differences based in diferent fishing gears ---------------
 # 2D y 3D consistence within groups (LL y TW) for day and night
 
-#   1.2.1) for drifting longlines (LL) --------------------------
+#   1.2.1) for drifting longlines (LL) --------------------------------------
 # DAY 
 df2dLL_day <- df2d_day %>% filter(fishing_gear == "LL")
 df3dLL_day <- df3d_day %>% filter(fishing_gear == "LL")
@@ -195,27 +211,30 @@ shapiro.test((df2dLL_day$ud95_intersect_percentage))  # Normal
 shapiro.test((df3dLL_day$udvol95_intersect_percentage))  # Normal
 # NORMALITY p > 0.05
 
-# Both NORMAL distribution -> t.test paried
+# Both NORMAL distribution -> t.test (paried)
 t.test(df2dLL_day$ud95_intersect_percentage, df3dLL_day$udvol95_intersect_percentage,
        paired = TRUE)
 
 # results: 
     # Paired t-test
-    # t = 7.6102, df = 27, p-value = 3.473e-08
+    # t = 9.3175, df = 27, p-value = 6.326e-10
 
 # ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD95
 #    for LL drinfting longlines
 
 summary(df2dLL_day$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 2.829  13.881  19.666  19.739  25.839  36.585
+# 7.229  20.982  32.492  29.815  40.832  53.886
 summary(df3dLL_day$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 4.107   7.840  11.873  12.943  15.931  28.077
+# 5.236   9.860  16.114  17.504  24.191  35.248
 
 # correlation test
 cor.test(df2dLL_day$ud95_intersect_percentage, df3dLL_day$udvol95_intersect_percentage, 
          method = "spearman")
+
+# S = 346, p-value = 6.404e-07
+# rho = 0.9053093
 
 #   ✔  There is a positive correlation between the percentage of intersection
 #       If a individual present high percentage of intersection in 2D, 
@@ -228,26 +247,26 @@ cor.test(df2dLL_day$ud95_intersect_percentage, df3dLL_day$udvol95_intersect_perc
 shapiro.test((df2dLL_day$ud50_intersect_percentage)) # Normal
 shapiro.test((df3dLL_day$udvol50_intersect_percentage)) # No Normal
 
-# Normal and NO normal --> upuesto importante es la normalidad de las diferencias,
+# Normal and NO normal --> supuesto importante es la normalidad de las diferencias,
 diff <- df2dLL_day$ud50_intersect_percentage - df3dLL_day$udvol50_intersect_percentage
-shapiro.test(diff) # Normal: W = 0.96555, p-value = 0.4676
+shapiro.test(diff) # Normal: W = 0.99442, p-value = 0.9999
 
-# Normality of the difference --> Normal t-test paired -- No normal -> Wilcoxon
+# Normality of the difference --> Normal t-test paired | No normal -> Wilcoxon
 t.test(df2dLL_day$ud50_intersect_percentage, df3dLL_day$udvol50_intersect_percentage,
        paired = TRUE)
 
 # results: 
-# t = 6.8493, df = 27, p-value = 2.336e-07
+# t = 8.3385, df = 27, p-value = 6.002e-09
 
 # ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD95
 #    for LL drinfting longlines
 
 summary(df2dLL_day$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 2.40   14.19   21.07   21.94   30.59   49.66 
+# 3.516  18.154  35.737  32.995  45.144  72.109 
 summary(df3dLL_day$udvol50_intersect_percentage)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 2.101   3.910   7.372   9.331  11.567  33.554
+# 2.087   4.674   9.495  11.917  14.428  43.759
 
 # correlation test
 cor.test(df2dLL_day$ud50_intersect_percentage, df3dLL_day$udvol50_intersect_percentage, 
@@ -337,6 +356,7 @@ cor.test(df2dLL_day$ud50_intersect_percentage, df3dLL_day$udvol50_intersect_perc
 
 
 
+
 # ----------------------------------------------
 #   1.2.2) for trawlers (TW) ---------------------------------------------------
 
@@ -347,30 +367,35 @@ df3dTW_day <- df3d_day %>% filter(fishing_gear == "TW")
 
 # UD 95 results --------------------------
 # Normality test - Shapiro test
-shapiro.test((df2dTW_day$ud95_intersect_percentage)) # No normal
+shapiro.test((df2dTW_day$ud95_intersect_percentage)) # Normal (p > 0.05)
 shapiro.test((df3dTW_day$udvol95_intersect_percentage)) # No normal
 
-# Both No normal -> Wilcox
-wilcox.test(df2dTW_day$ud95_intersect_percentage, df3dTW_day$udvol95_intersect_percentage, 
-            paired = TRUE)
+
+# Normal and NO normal --> supuesto importante es la normalidad de las diferencias,
+diff <- df2dTW_day$ud95_intersect_percentage - df3dTW_day$udvol95_intersect_percentage
+shapiro.test(diff) # Normal p > 0.05: W = 0.96816, p-value = 0.5322
+
+# Normality of the difference --> Normal t-test paired -- No normal -> Wilcoxon
+t.test(df2dTW_day$ud95_intersect_percentage, df3dTW_day$udvol95_intersect_percentage,
+       paired = TRUE)
 
 # results:
-# V = 315, p-value = 0.009536
-# ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD9
+# t = 3.4356, df = 27, p-value = 0.001927
+# ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD95 for TW
 
 summary(df2dTW_day$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.1664  3.2299  7.7949  8.5330 10.8208 28.992
+# 0.3328  4.4124  9.8360 11.0991 16.9408 30.5085
 
 summary(df3dTW_day$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1.935   3.016   3.980   5.477   6.127  20.000
+# 1.819   2.877   3.669   5.065   5.836  20.000 
 
 # correlation test
 cor.test(df2dTW_day$ud95_intersect_percentage, df3dTW_day$udvol95_intersect_percentage, 
          method = "spearman")
 
-#   X Not positive correlation between the percentage of intersection X
+#   XXX  NOT positive correlation between the percentage of intersection X
 
 
 
@@ -380,23 +405,25 @@ cor.test(df2dTW_day$ud95_intersect_percentage, df3dTW_day$udvol95_intersect_perc
 shapiro.test((df2dTW_day$ud50_intersect_percentage)) # No normal
 shapiro.test((df3dTW_day$udvol50_intersect_percentage)) # No normal
 
-# One normla and the other NO normal distribution -> Wilcoxon test signed-rank test
+# Both no normal -> Wilcoxon test signed-rank test
 wilcox.test(df2dTW_day$ud50_intersect_percentage, df3dTW_day$udvol50_intersect_percentage, 
             paired = TRUE)
 # results:
-#   V = 295, p-value = 0.03575
+#   V = 322, p-value = 0.005603
 # ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD9
 
 summary(df2dTW_day$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.000   3.352   5.431   7.123  10.004  26.437
+#  0.000   3.326   9.119  10.582  17.232  28.346 
 
 summary(df3dTW_day$udvol50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1.773   2.403   2.873   4.712   3.981  22.424 
+# 1.773   2.265   2.689   4.400   3.981  22.424 
 
 sd(df2dTW_day$ud50_intersect_percentage)
+# 8.760581
 sd(df3dTW_day$udvol50_intersect_percentage)
+# 4.514201
 
 # correlation test
 cor.test(df2dTW_day$ud50_intersect_percentage, df3dTW_day$udvol50_intersect_percentage, 
@@ -424,18 +451,16 @@ shapiro.test((df3dTW_night$udvol95_intersect_percentage)) # No normal
 wilcox.test(df2dTW_night$ud95_intersect_percentage, df3dTW_night$udvol95_intersect_percentage, 
             paired = TRUE)
 
-# results NOT SIGNIFICANT p > 0.05
-# V = 250, p-value = 0.2946
-# X X X  Similar values of % of intersection in 2D during the night than 3D for UD95 
-# for trawlers during the night
-
+# # ✔  Higher values of % of intersection in 2D  thduringe DAY than 3D for UD95 night
+# V = 319, p-value = 0.007071
+ 
 summary(df2dTW_night$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.000   1.308   5.177   6.972   9.244  25.781 
+# 0.7194  1.9611  9.5296 10.0431 14.3191 26.6406  
 
 summary(df3dTW_night$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1.902   2.863   4.008   5.910   6.752  21.068 
+# 1.761   2.669   3.948   5.536   6.201  21.068 8 
 
 # correlation test
 cor.test(df2dTW_night$ud95_intersect_percentage, df3dTW_night$udvol95_intersect_percentage, 
@@ -456,20 +481,20 @@ shapiro.test((df3dTW_night$udvol50_intersect_percentage)) # No normal
 wilcox.test(df2dTW_night$ud50_intersect_percentage, df3dTW_night$udvol50_intersect_percentage, 
             paired = TRUE)
 # results:
-#   V = 210, p-value = 0.8842
-# X X X  Similar values of % of intersection in 2D during the night than 3D for UD95 
-# for trawlers during the night
+#   V = 304, p-value = 0.02041
+# ✔  Higher values of % of intersection in 2D  thduringe DAY than 3D for UD50 night
+
 
 summary(df2dTW_night$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.000   1.253   3.068   4.732   5.126  21.795
+#  0.000   2.777   5.548   8.588  10.893  32.338
 
 summary(df3dTW_night$udvol50_intersect_percentage)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 1.694   2.404   2.752   4.499   4.155  22.026  
+#  1.694   2.255   2.618   4.362   4.155  22.026  
 
-sd(df2dTW_night$ud50_intersect_percentage)
-sd(df3dTW_night$udvol50_intersect_percentage)
+sd(df2dTW_night$ud50_intersect_percentage) # 8.463291
+sd(df3dTW_night$udvol50_intersect_percentage) # 4.49186
 
 # correlation test
 cor.test(df2dTW_night$ud50_intersect_percentage, df3dTW_night$udvol50_intersect_percentage, 
@@ -528,15 +553,15 @@ aov_result <- aov(Intersection ~ Dimension * fishing_gear * daynight, data = df_
 summary(aov_result)
 
 # > summary(aov_result)
-# Df Sum Sq Mean Sq F value   Pr(>F)    
-#   Dimension                         1   1277    1277  26.308 6.47e-07 ***
-#   fishing_gear                      1   3733    3733  76.897 5.43e-16 ***
-#   daynight                          1    169     169   3.476   0.0636 .  
-#   Dimension:fishing_gear            1    413     413   8.512   0.0039 ** 
-#   Dimension:daynight                1      1       1   0.026   0.8718    
-#   fishing_gear:daynight             1     77      77   1.584   0.2095    
-#   Dimension:fishing_gear:daynight   1     40      40   0.827   0.3641    
-#   Residuals                       216  10485      49                     
+#                                   Df Sum Sq Mean Sq F value   Pr(>F)    
+# Dimension                         1   5289    5289  60.974 2.48e-13 ***
+# fishing_gear                      1  10564   10564 121.783  < 2e-16 ***
+# daynight                          1    255     255   2.943 0.087702 .  
+# Dimension:fishing_gear            1   1108    1108  12.771 0.000434 ***
+# Dimension:daynight                1     17      17   0.192 0.661559    
+# fishing_gear:daynight             1    190     190   2.192 0.140175    
+# Dimension:fishing_gear:daynight   1     96      96   1.107 0.294000    
+# Residuals                       216  18737      87                     
 # ---                   
 
 
@@ -544,64 +569,69 @@ summary(aov_result)
 
 
 
-# interpretation:
+# interpretation (95UD)
 #El efecto de la variable Dimension (2D vs 3D) es altamente significativo (p < 0.001).
 
 # Esto indica que, en promedio, existe una diferencia sustancial en el porcentaje 
 # de intersección con la actividad pesquera entre las dos dimensiones, 
-# siendo los valores significativamente menores en 3D que en 2D.
-# 
+# siendo los valores significativamente distintos entre 2D y 3D.
+
 # El tipo de fishing gear también muestra un efecto altamente significativo (p < 0.001) 
-# sobre la variable de intersección. Esto significa que los distintos tipos de artes de pesca 
-# (longlines y trawlers) presentan diferencias significativas 
-# en el porcentaje de solapamiento con las áreas de utilización.
-# 
-# La variable daynight (día vs noche) presenta un efecto marginalmente 
-# significativo (p = 0.0636), lo que sugiere una posible diferencia entre periodos 
-# diurnos y nocturnos, aunque esta diferencia no es estadísticamente 
-# concluyente al nivel de significancia estándar.
-# 
-# La interacción entre Dimension y fishing gear resulta significativa (p = 0.0039), 
-# lo que indica que la diferencia entre 2D y 3D depende del tipo de arte de pesca. 
-# En otras palabras, el efecto del cambio de dimensión no es igual para trawlers y longlines, 
-# lo que sugiere que la ganancia (o pérdida) de información al incorporar 
+# sobre la variable de intersección. Esto significa que los 
+# distintos tipos de artes de pesca (longlines y trawlers)
+# presentan diferencias significativas en el porcentaje
+# de solapamiento con las áreas de utilización.
+
+# La variable daynight (día vs noche) presenta un efecto marginal 
+# (p = 0.088), lo que sugiere una posible diferencia entre periodos
+# diurnos y nocturnos, aunque esta diferencia no es 
+# estadísticamente concluyente al nivel de significancia estándar.
+
+# La interacción entre Dimension y fishing gear resulta significativa 
+# (p = 0.000434), lo que indica que la diferencia entre 2D y 3D depende 
+# del tipo de arte de pesca. En otras palabras, 
+# el efecto del cambio de dimensión no es igual para trawlers y longlines,
+# sugiriendo que la ganancia (o pérdida) de información al incorporar
 # la tercera dimensión varía según el tipo de pesquería.
-# 
-# Por el contrario, las interacciones Dimension × daynight, fishing gear × daynight, 
-# y la triple interacción (Dimension × fishing gear × daynight)
-# no fueron significativas (p > 0.2). Esto indica que el efecto de la dimensión y 
-# del arte de pesca no cambia significativamente entre el día y la noche, 
+
+# Por el contrario, las interacciones Dimension × daynight, 
+# fishing gear × daynight, y la triple interacción 
+# (Dimension × fishing gear × daynight) no fueron significativas (p > 0.1). 
+# Esto indica que el efecto de la dimensión y del arte de pesca
+# no cambia significativamente entre el día y la noche, 
 # y no hay evidencia de efectos combinados complejos entre las tres variables.
 
 
-# Interpretation (UD95)
-  
-# The effect of the Dimension variable (2D vs 3D) is highly significant (p < 0.001).
-# This indicates that, on average, there is a substantial difference 
-# in the percentage of overlap with fishing activity between the two dimensions, 
-# with 3D estimates showing significantly lower overlap than 2D ones.
-# 
-# The type of fishing gear also has a highly significant effect (p < 0.001) 
-# on overlap values. This means that longlines and trawlers differ significantly 
-# in the percentage of spatial overlap with turtle utilization distributions.
-# 
-# The variable daynight (day vs night) shows a marginally significant 
-# effect (p = 0.0636), suggesting a possible difference between daytime 
-# and nighttime overlaps, although this difference does not reach conventional statistical significance.
-# 
-# The interaction between Dimension and fishing gear is significant (p = 0.0039), 
-# indicating that the difference between 2D and 3D estimates depends 
-# on the type of fishing gear. In other words, the effect of including depth 
-# varies between trawlers and longlines, suggesting that the benefit (or reduction)
-# in overlap when using 3D UDs is not uniform across gear types.
-# 
-# In contrast, the interactions Dimension × daynight, 
-# Fishing gear × daynight, and the three-way interaction (Dimension × Fishing gear × Day/Night) 
-# are not statistically significant (p > 0.2). 
-# This implies that the effects of dimension and gear type do not significantly 
-# differ between day and night, and there is no evidence for complex combined 
-# effects between all three variables.
 
+# Interpretation (UD95)
+#   
+# The effect of the Dimension (2D vs 3D) variable is highly 
+# significant (p < 0.001).
+# This indicates that, on average, there is a substantial difference in the 
+# percentage of overlap with fishing activity between the two dimensions, 
+# with values significantly different between 2D and 3D.
+# 
+# The type of fishing gear also shows a highly significant effect (p < 0.001) 
+# on the intersection variable. This means that the different types of fishing gear 
+# (longlines and trawlers) present significant differences in the percentage
+# of overlap with the utilization areas.
+# 
+# The daynight (day vs night) variable shows a marginal effect (p = 0.088), 
+# suggesting a possible difference between daytime and nighttime periods, 
+# although this difference is not statistically conclusive at the standard 
+# significance level.
+# 
+# The interaction between Dimension and fishing gear is significant (p = 0.000434),
+# indicating that the difference between 2D and 3D depends on the type of fishing gear. 
+# In other words, the effect of changing dimension is not the same for trawlers and longlines, 
+# suggesting that the gain (or loss) of information when incorporating 
+# the third dimension varies depending on the fishery type.
+# 
+# In contrast, the interactions Dimension × daynight, fishing gear × daynight, 
+# and the three-way interaction (Dimension × fishing gear × daynight) were 
+# not significant (p > 0.1). This indicates that the effect of dimension and
+# fishing gear does not change significantly between day and night, and there 
+# is no evidence of complex combined effects among the three variables.
 
 
 
@@ -632,55 +662,58 @@ aov_result <- aov(Intersection ~ Dimension * fishing_gear * daynight, data = df_
 summary(aov_result)
 
 # > summary(aov_result)
-# Df Sum Sq Mean Sq F value   Pr(>F)    
-# Dimension                         1   2880    2880  43.598 3.08e-10 ***
-# fishing_gear                      1   4116    4116  62.303 1.46e-13 ***
-# daynight                          1    335     335   5.075   0.0253 *  
-# Dimension:fishing_gear            1   1916    1916  29.006 1.88e-07 ***
-# Dimension:daynight                1      6       6   0.097   0.7557    
-# fishing_gear:daynight             1     73      73   1.110   0.2932    
-# Dimension:fishing_gear:daynight   1     32      32   0.478   0.4903    
-# Residuals                       216  14269      66                     
+                                # Df Sum Sq Mean Sq F value   Pr(>F)    
+# Dimension                         1  10472   10472  83.618  < 2e-16 ***
+# fishing_gear                      1   9409    9409  75.130 1.05e-15 ***
+# daynight                          1    510     510   4.075   0.0448 *  
+# Dimension:fishing_gear            1   4019    4019  32.090 4.67e-08 ***
+# Dimension:daynight                1      0       0   0.001   0.9759    
+# fishing_gear:daynight             1    225     225   1.793   0.1819    
+# Dimension:fishing_gear:daynight   1     59      59   0.468   0.4945    
+# Residuals                       216  27052     125                     
+
 
 
 
 # Interpration
 
-# The effect of Dimension (2D vs 3D) is highly significant (p < 0.001), 
-# indicating a substantial difference in overlap between the two types of utilization 
-# distributions. Specifically, 3D estimates result in significantly lower 
-# overlap with fishing activity compared to 2D estimates within the core areas (50% UD).
-# 
-# The effect of fishing gear is also highly significant (p < 0.001), 
-# meaning that longlines and trawlers differ notably in how much their 
-# fishing activity overlaps with turtle core areas.
-# 
-# The variable daynight (day vs night) has a significant effect (p = 0.025), 
-# suggesting that overlap with fishing activity differs between day and night. 
-# This result implies a temporal component in how turtle core areas intersect 
-# with fisheries, regardless of dimension or gear.
-# 
-# The interaction between Dimension and fishing gear is again highly significant 
-# (p < 0.001), showing that the magnitude of the difference between 
-# 2D and 3D varies depending on the fishing gear. 
-# 
-# This reinforces that depth-related refinement in UDs affects 
-# overlap differently for longlines and trawlers.
-# 
-# On the other hand, the interactions Dimension × daynight, 
-# Fishing gear × daynight, and the three-way interaction (Dimension × Fishing gear × Day/Night) 
-# are not statistically significant (p > 0.2), suggesting that 
-# the effects of dimension and fishing gear are consistent across day and night periods.
+# The effect of the Dimension variable (2D vs 3D) is highly significant (p < 0.001).
+# This indicates that, on average, there is a substantial difference in the percentage
+# of overlap with fishing activity between the two dimensions, with values significantly
+# different between 2D and 3D.
+
+# The type of fishing gear also shows a highly significant effect (p < 0.001) on
+# the intersection variable. This means that the different fishing gear types
+# (longlines and trawlers) present significant differences in the percentage of
+# overlap with the utilization areas.
+
+# The daynight variable (day vs night) shows a significant effect (p = 0.0448),
+# indicating that there are statistically significant differences between daytime
+# and nighttime periods, although the effect is smaller compared to Dimension or
+# fishing gear.
+
+# The interaction between Dimension and fishing gear is significant (p = 4.67e-08),
+# indicating that the difference between 2D and 3D depends on the type of fishing gear.
+# In other words, the effect of changing dimension is not the same for trawlers and
+# longlines, suggesting that the gain (or loss) of information when incorporating the
+# third dimension varies depending on the fishery type.
+
+# In contrast, the interactions Dimension × daynight, fishing gear × daynight, and the
+# three-way interaction (Dimension × fishing gear × daynight) were not significant
+# (p > 0.18). This indicates that the effect of dimension and fishing gear does not
+# change significantly between day and night, and there is no evidence of complex
+# combined effects among the three variables.
+
 
 
 # In summary:
 
 # There is a highly significant reduction in overlap when using 3D UDs vs 2D.
-# Fishing gear type significantly affects the degree of overlap.
-# Overlap differs between day and night, indicating a temporal effect.
-# The impact of using 3D UDs varies by gear type (strong interaction).
-# No significant interactions with day/night were detected, suggesting
-# the dimensional and gear effects are consistent across time of day.
+# Fishing gear type also has a highly significant effect on overlap.
+# Overlap differs significantly between day and night, although this effect is smaller.
+# The impact of using 3D UDs varies by gear type (strong Dimension × fishing gear interaction).
+# No significant interactions with day/night were detected, suggesting the effects of
+# dimension and fishing gear are consistent across time of day.
 
 
 
@@ -724,7 +757,7 @@ ggplot(df_longUD95, aes(x = Dimension, y = Intersection, fill = Dimension)) +
 #         labs(title = "",
 #              x = "",
 #              y = "Overlap between UD595 and fishing effort (%)") +
-#         ylim(0,100) + 
+#         ylim(0,100) +
 #         # theme
 #         theme_bw() +
 #         theme(axis.title.y = element_text(size = 11, margin = margin(r = 10)),  # space in title
@@ -748,6 +781,7 @@ ggplot(df_longUD95, aes(x = Dimension, y = Intersection, fill = Dimension)) +
 #                                      "LL.2D" = "#FF9678", "LL.3D" = "#41436A")) +  # Lighter and darker for LLL
 #         geom_jitter(width = 0.2, size = 2, color = "black", alpha = 0.5)  # Add outliers (jittered points)
 # 
+# p_barplot95
 
 
 # p_barplot95 <- ggplot(df_longUD95, aes(x = Dimension, y = Intersection, fill = interaction(fishing_gear, Dimension))) +

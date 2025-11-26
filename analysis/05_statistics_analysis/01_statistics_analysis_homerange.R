@@ -5,6 +5,7 @@
 # Created by Jessica Ruff and David March (2021)
 
 # Update package and standarized field names following Sequeria et al., 2021
+# and day night results
 # by Javier Menéndez-Blázquez | @jmenblaz
 
 
@@ -67,7 +68,7 @@ write.csv(table, file, row.names = F)
 
 
 # ----------------------------------------------------------------------------
-# 3) For 3D nigth and day
+# 3) For 2D/3D nigth and day
 
 
 day3d <- read.csv(paste0(output_dir,"/01_kde_3d/kde_3d_res_day.csv"))
