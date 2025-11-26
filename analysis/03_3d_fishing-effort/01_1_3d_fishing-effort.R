@@ -13,7 +13,7 @@
 
 
 # 1) Extract fishing effort for extent of seaturtle kde estimate
-  # 1.1) Resample fishing effort toluto kde resion (e.,g 5x5 km2) and same extension
+  # 1.1) Resample fishing effort to kde ressolution (e.,g 5x5 km2) and same extension
 
 # 2) Create a raster stack following the different depths of fishing
   # 2.1) depth with no fishing values 0
@@ -114,6 +114,12 @@ bath_gebco <- raster(bath_gebco)
 # select values < 0 for sea areas (>= 0 as NA)
 bath_gebco[bath_gebco >= 0] <- NA 
 
+# NOTE*** : apply filter for bathymetry <50 meters as NA, 
+# no fishing trawlers (at least in Spanish waters)
+# Most of the turtles are in spanish waters
+
+bath_gebco[bath_gebco >= -50] <- NA 
+
 
 # ------------------------------------------------------------------------------
 # 3) Process 3D three dimensional fishinf effort following the kde extension ---
@@ -125,7 +131,7 @@ bath_gebco[bath_gebco >= 0] <- NA
 # getDoParWorkers() # backend information
 
 
-t <- Sys.time()
+t <- Sys.time()  # 1 hour
 
 # for fishing gear in fishing_gears
 # fishing_gear = "drifting_longlines" # drifting_longlines, trawler, etc, etc)

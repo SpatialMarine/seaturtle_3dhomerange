@@ -67,6 +67,7 @@ files <- list.files(paste0(input_dir,"/gfw/daynight/raw"), pattern = "L1.csv", f
 # parallel computing
 # foreach(){} %doparaell% {}
 
+t <- Sys.time()
 
 for (f in 1:length(files)) {  # file by year
   
@@ -149,7 +150,8 @@ for (f in 1:length(files)) {  # file by year
 }
 
   
-  
+Sys.time() - t  # 4 mins
+
   
   
   

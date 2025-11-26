@@ -119,6 +119,12 @@ bath_gebco <- raster(bath_gebco)
 # select values < 0 for sea areas (>= 0 as NA)
 bath_gebco[bath_gebco >= 0] <- NA 
 
+# NOTE*** : apply filter for bathymetry <50 meters as NA, 
+# no fishing trawlers (at least in Spanish waters)
+# Most of the turtles are in spanish waters
+
+bath_gebco[bath_gebco >= -50] <- NA 
+
 
 # ------------------------------------------------------------------------------
 # 3) Process 3D three dimensional fishing effort following the kde extension ---

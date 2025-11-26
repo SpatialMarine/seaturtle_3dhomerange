@@ -29,10 +29,29 @@ library(sp)
 library(sf)
 library(raster)
 
-
-
 # day and night process
 daynight_pattern <- c("day", "night")
+
+
+
+# Not problem that at the end we will use 10x10 km
+# For trawlers load bathymetry information (GEBCO, 2024)
+# see setup.R for path
+bath_gebco <- paste0(input_dir, "/gis/gebco/mediterranean_sea_gebco_2024.tif")
+bath_gebco <- raster(bath_gebco)
+# select values < 0 for sea areas (>= 0 as NA)
+bath_gebco[bath_gebco >= 0] <- NA 
+
+# Reproject bathymetry to same CRS
+bath_gebco <- projectRaster(bath_gebco, crs = CRS("EPSG:3035"))
+
+# NOTE*** : apply filter for bathymetry <50 meters as NA, 
+# no fishing trawlers (at least in Spanish waters)
+# Most of the turtles are in spanish waters
+bath_gebco[bath_gebco >= -50] <- NA 
+
+
+
 
 
 
@@ -117,7 +136,7 @@ for (dnp in 1:length(daynight_pattern)) {
       ), crs = st_crs(3035)))
       
       # convert or transform to from EPSG:3035 to EPSG:4326 (WGS84) bounding box
-      bb <- st_transform(bb, crs = 4326)
+      # bb <- st_transform(bb, crs = 4326)
       bb <- as(bb, "Spatial")  # transform from sfc to sp class
       
       
@@ -132,6 +151,10 @@ for (dnp in 1:length(daynight_pattern)) {
       fishing <- raster(file)
       # plot(fishing)
       
+      # transform or reproject to CRS of study
+      # EPSG:3035 same used for kde 3D
+      fishing <- projectRaster(fishing, crs = CRS("EPSG:3035"))
+      
       # Global Fishing Watch high spatial resolution = 0.01° (1km2 aprox)
       
       # crop / mask fishing effort to bounding-box of tracking data 
@@ -144,9 +167,17 @@ for (dnp in 1:length(daynight_pattern)) {
       # plot(fishing)
       # plot(bb, add = TRUE)
        
-      # transform or reproject to CRS of study
-      # EPSG:3035 same used for kde 3D
-      fishing <- projectRaster(fishing, crs = CRS("EPSG:3035"))
+      
+      # crop by bathymetry > 50 for trawlers
+      if (fishing_gear == "TW") {
+        # crop and mask bathymety by bb
+        bath_mask <- crop(bath_gebco, bb)
+        bath_mask <- mask(bath_mask, bb)
+        # resample bath_mask to equal extension
+        bath_mask <- resample(bath_mask, fishing, method = "bilinear")  # 'bilinear' para continuo
+        # apply mask of 50m bath to Trawlers fishing effort (events) detected
+        fishing <- mask(fishing, bath_mask)
+      }
       
       # create references raster for resample fishing effort to dimension and exent of tracking data
       # same extension, dimension and resolution

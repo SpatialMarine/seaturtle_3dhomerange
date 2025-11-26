@@ -33,7 +33,7 @@
 # 5) filter by fishing gear of interests
 # 6) Calculate apparent fishing hours of each fishing event
 # 7) Calculate day/night of apparent fishing operation by start and end time
-#   - L1 final data set with fishing event and its vessel and other associted information
+#   - L1 final data set with fishing event and its vessel and other associated information
 
 
 
@@ -212,7 +212,7 @@ for (y in 1:length(years)) {
 
 
 # -------------------------------------------------------------------------------
-# 3) Identify fishing geart from vessels id in apparent fishing events detected
+# 3) Identify fishing gear from vessels id in apparent fishing events detected
 
 # Note: Not recommended for paralell computing to avoid simultaneous API calls
 # Note: Some vesselIDs don't have vessel info about name, flag, imo, length, etc
@@ -227,6 +227,25 @@ for (y in 1:length(years)) {
     
   # read event data identified
   event_data <- read.csv(paste0(outfolder,"/gfw_fishing_event_data_",year,"_L0.csv"))
+  
+  # check POSIXct class in datetime info
+  # class(event_data$start)
+  # class(event_data$end)
+  
+  event_data$start <- as.POSIXct(event_data$start,
+                                 format = "%Y-%m-%d %H:%M:%S",
+                                 tz = "UTC")
+  
+  event_data$end <- as.POSIXct(event_data$end,
+                               format = "%Y-%m-%d %H:%M:%S",
+                               tz = "UTC")
+  
+  
+  # check potential NA in needed fields (latitude, longitude, start, end, etc)
+  sapply(event_data, function(x) sum(is.na(x)))
+  
+  # clean
+  event_data <- event_data[complete.cases(event_data[, c("start", "end", "lat", "lon")]), ]
   
   # for all event data compiled select uniques IDs
   # Use unique vesselId in order to reduce processing time due that a vesselId 
@@ -364,6 +383,12 @@ for (y in 1:length(years)) {
   Sys.time() - t
   
 
+  # clean VesselsIDs with potential NA information in interested fields
+  # gear_type --> mainly for our study case
+  sapply(vesselIds, function(x) sum(is.na(x)))  # explore
+  # clean 
+  vesselIds <- vesselIds[complete.cases(vesselIds[, c("gear_type")]), ]
+  
   # Export vesselIds info by year as backup
   write.csv(vesselIds, paste0(outfolder,"/gfw_fishing_event_data_vesselIds_",year,"_L0.csv"), row.names = FALSE)
   
@@ -383,11 +408,9 @@ for (y in 1:length(years)) {
   event_data <- event_data %>% filter(gear_type == "TRAWLERS" | 
                                         gear_type == "DRIFTING_LONGLINES")
   
-  
+
+
   # 6) Calculate apparent fishing hours of each fishing event --------------------
-  # check POSIXct class in datetime info
-  # class(event_data$start)
-  # class(event_data$end)
   
   # calculate apparent fishing effort hours
   event_data$fishing_effort_hour <- as.numeric(difftime(event_data$end, event_data$start, units = "hours"))
@@ -421,7 +444,7 @@ for (y in 1:length(years)) {
     # due the data volume for process
     time_seq <- seq(from = start_time, to = end_time, by = "5 min")
     
-    # create dataframe from time sequency
+    # create dataframe from time sequence
     time_seq <- data.frame(datetime = time_seq)
     
     # Per each min or sequency, calculate if it is day or night 
@@ -449,25 +472,28 @@ for (y in 1:length(years)) {
   }
   
   
+  # check if data are data.table to apply function (:= operator for DT)
+  # data.table::is.data.table(event_data)
+  event_data <- data.table::setDT(event_data)
+  
   # apply function to fishing event data
   # Note**: this function could take some time in processing if there are many of fishing events
-  # we use 5 min seq intead 1 min to reduce processing time
+  # we use 5 min seq instead to reduce processing time
+  
   t <- Sys.time()
   #info
   cat( "· Processing day/night class for each fishing event \n")
   event_data[, daynight := mapply(daynight_class, start, end, lat, lon)]
   
-  Sys.time() - t
+  print(Sys.time() - t)
   
   # 8) Export regenerated database for further spatial analysis ->
   #    day/night map fishing effort maps by fishing gear
   write.csv(event_data, paste0(outfolder,"/gfw_fishing_event_",year,"_L1.csv"), row.names = FALSE)
   
-  message (" ------ Processing ",year," finished -----")
+  message (" ------ Processing ",year," finished ----- ")
   
 }
-
-
 
 
 
