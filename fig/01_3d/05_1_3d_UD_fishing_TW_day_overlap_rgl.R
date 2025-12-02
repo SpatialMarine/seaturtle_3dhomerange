@@ -23,10 +23,11 @@ library(plot3D)
 
 
 # 1) import organismID for location data, kde results, and ttdr data for plot
-# 181762
+# organismID <- "181762"
+# organismID <- "235397"
 # 200043
-# 34327
-# 20046
+# organismID <- "181761"
+# # organismID <- "200046"
 organismID <- "200043"
 
 # select time period
@@ -37,13 +38,15 @@ daynight <- "day"
 kde_res <- read.csv(paste0(main_dir,"/output/01_kde_3d/kde_3d_res_",daynight,".csv"))
 kde_res <- kde_res %>% filter(kde_res$organismID == !!organismID)
 
+
 # # Assign thresholds for plotting
 threshold.95 <- kde_res$threshold.95  
 threshold.50 <- kde_res$threshold.50
 
 
-# load mkde for 3D UD 
+# load mkde for 3D UD
 # and time period (daynight)
+# mkde
 file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj_",daynight,".rdata")
 load(file)
 
@@ -54,13 +57,10 @@ ttdr <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/
 load(ttdr)
 
 
-
-
-
 # 2) use threshold of for filter UD KDE 
 # result kde threshold
-vol95 <- res$threshold.95
-vol50 <- res$threshold.50
+vol95 <- kde_res$threshold.95
+vol50 <- kde_res$threshold.50
 
 # Get array from mkde object
 x=mkde.obj$x
@@ -71,13 +71,12 @@ F=mkde.obj$d
 
 # 3) load fishing effort from extension of organism ID processed previously
 # 3.1) Longlines - --------------------------
-fishing_gear <- "LL"
+fishing_gear <- "TW"
 
 # load fishing data for this specific fishing gear
 rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_daynight/",organismID,"_3d_fishing-effort_",fishing_gear,"_",daynight,".tif"))
 crs(rstack) <- CRS("EPSG:3035")  # add CRS
 names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
-# plot(rstack)
 
 # transform for WGS84 EPSG: 4326 CRS
 # for plotting with coordinates
@@ -136,8 +135,9 @@ long_df <- long_df[, c("X", "Y", "Z")]
 rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap_daynight/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,"_",daynight,".tif"))
 crs(rstack) <- CRS("EPSG:3035")  # add CRS
 names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
+# plot(rstack)
 
-# filter raster by values
+# filter raster by values UD
 rstack <- calc(rstack, fun = function(x) { ifelse(x >= threshold.50, x, NA) })
 
 # pointscloud of intersect volume
@@ -225,22 +225,22 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
     
     # Intersect ---------------------------------------------------------
     # add intersect raster points
-    plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
+    plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1),
                      col="#582525", alpha = 0.10,
                      pch = 19, # shape
                      cex = 2, # size
-                     lit = TRUE, 
+                     lit = TRUE,
                      plot = FALSE,
                      add = TRUE)
-    
+
     intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
     # add intermediate points (each 1 meter)
     for (i in 1:9) {
-      plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
+      plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i,
                        col = "#582525", alpha = 0.09,
                        pch = 20, # shape
                        cex = 2.2, # size
-                       lit = TRUE, 
+                       lit = TRUE,
                        plot = FALSE,
                        add = TRUE)
     }

@@ -5,9 +5,11 @@
 
 # Javier Menéndez-Blázquez | @jmenblaz
 
-# Plot 3D UD and overlap wit fisheries
+# Plot 3D UD and overlap with fisheries
+# NIGHT
 
-# 0)  Load libraries
+
+# 0)  Load libraries ---------------------------------------------------
 
 library(htmlwidgets)
 library(raster)
@@ -17,32 +19,40 @@ library(mkde)
 library(dplyr)
 library(plot3Drgl)
 library(orientlib)
+library(plot3D)
+
 
 # 1) import organismID for location data, kde results, and ttdr data for plot
 # 181762
 # 200043
 # 34327
 # 20046
-
 organismID <- "200043"
+
+# select time period
+daynight <- "night"
 
 # Prepare and add 3D 50/95UD of organism ID 
 # load  kde result by organism ID
-kde_res <- read.csv(paste0(main_dir,"/output/01_kde_3d/kde_3d_res.csv"))
-kde_res<- kde_res %>% filter(kde_res$organismID == !!organismID)
+kde_res <- read.csv(paste0(main_dir,"/output/01_kde_3d/kde_3d_res_",daynight,".csv"))
+kde_res <- kde_res %>% filter(kde_res$organismID == !!organismID)
 
 # # Assign thresholds for plotting
 threshold.95 <- kde_res$threshold.95  
 threshold.50 <- kde_res$threshold.50
 
-# load mkde for 3D UD
-file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj.rdata")
+
+# load mkde for 3D UD 
+# and time period (daynight)
+file <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3dmkde_obj_",daynight,".rdata")
 load(file)
+
 # load kde results
-res <- read.csv(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_res.csv"))
+res <- read.csv(paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_res_",daynight,".csv"))
 # load ttdr data for plotting suplementaty fig of 3D tracks in details
-ttdr <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_ttdr.rdata")
+ttdr <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/seaturtle_3dhomerange/output/01_kde_3d/",organismID,"/",organismID,"_3d_ttdr_",daynight,".rdata")
 load(ttdr)
+
 
 
 
@@ -64,10 +74,10 @@ F=mkde.obj$d
 fishing_gear <- "LL"
 
 # load fishing data for this specific fishing gear
-rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d/",organismID,"_3d_fishing-effort_",fishing_gear,".tif"))
+rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_daynight/",organismID,"_3d_fishing-effort_",fishing_gear,"_",daynight,".tif"))
 crs(rstack) <- CRS("EPSG:3035")  # add CRS
 names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
-# plot(LL)
+# plot(rstack)
 
 # transform for WGS84 EPSG: 4326 CRS
 # for plotting with coordinates
@@ -98,7 +108,7 @@ names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
 # y <- coords[,2]  # lat
 
 
-# 3.2) Rasterstack as cloudpoint
+# 3.2) Rasterstack as cloudpoint for 3D visualization
 
 # Extraer coordenadas y valores de cada capa
 points_df <- as.data.frame(rasterToPoints(rstack))
@@ -114,15 +124,16 @@ long_df$Z <- as.numeric(gsub("Layer_", "", long_df$Layer)) * 10
 # select variables
 long_df <- long_df[, c("X", "Y", "Z")]
 
-# Mostrar las primeras filas
+# # Check long dataframe
 # head(long_df)
 # tail(long_df)
 
 
 # 3.3) load intersect volume -- -
 
-# load fishing data for this specific fishing gear
-rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,".tif"))
+# load fishing intersection for this specific fishing gear 
+# and day period by organism ID
+rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap_daynight/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,"_",daynight,".tif"))
 crs(rstack) <- CRS("EPSG:3035")  # add CRS
 names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
 
@@ -151,18 +162,19 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 
 # 5.1) UD 50 -------------------------------- -------------------------------------
     
-    isosurf3D(x, y, z, F, level = c(vol50), 
-              col = c("#999ce8"), 
-              clab = "F", alpha = 0.55, plot=FALSE, zlim = c(0,-200), 
+ plot3D::isosurf3D(x, y, z, F, level = c(vol50), 
+              col = c("#9ab6d4"),
+              # col = c ("#FFE36B"),
+              clab = "F", alpha = 0.6, plot=FALSE, zlim = c(0,-200), 
               ticktype = "z",
               # labs axi
               xlab = "X", 
               ylab = "Y", 
               zlab = "Depth (m)",
               # width of mesh lines
-              lwd = 1,
+              lwd = 0.9,
               # 3Dmesh lines color
-              border = "grey40",
+              # border = "grey60",
               # lithing and shade
               lighting = FALSE,
               # shade = 1,
@@ -213,7 +225,7 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
     # Intersect ---------------------------------------------------------
     # add intersect raster points
     plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
-                     col="#582525", alpha = 0.15,
+                     col="#582525", alpha = 0.10,
                      pch = 19, # shape
                      cex = 2, # size
                      lit = TRUE, 
@@ -224,9 +236,9 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
     # add intermediate points (each 1 meter)
     for (i in 1:9) {
       plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
-                       col = "#582525", alpha = 0.12,
-                       pch = 19, # shape
-                       cex = 2.1, # size
+                       col = "#582525", alpha = 0.09,
+                       pch = 20, # shape
+                       cex = 2.2, # size
                        lit = TRUE, 
                        plot = FALSE,
                        add = TRUE)
@@ -287,18 +299,18 @@ myUserMatrix <- matrix(c(
 rgl.viewpoint(userMatrix = myUserMatrix, zoom = 0.83)
     
     
-# Export plots  a formato web ------------------------------------------------
+# Export plots to HTML ------------------------------------------------
 # save rgl window
 rgl_widget <- rglwidget(width = 2560, height = 1440)
 
 # export as .png
-rgl.snapshot(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap.png"), fmt="png")
+rgl.snapshot(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap_",daynight,".png"), fmt="png")
     
 # save as HTML interactive
-saveWidget(rgl_widget, paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap.html"))
+saveWidget(rgl_widget, paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap_",daynight,".html"))
 
 # export as .svg
-rgl.postscript(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap.svg"), fmt = "svg")
+rgl.postscript(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap_",daynight,".svg"), fmt = "svg")
 
 
 
@@ -335,17 +347,18 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 
 # plot 3D rgl
 isosurf3D(x, y, z, F, level = c(vol95), 
-          col = c("#999ce8"), 
-          clab = "F", alpha = 0.25, plot=FALSE, zlim = c(0,-200), 
+          # col = c("#6b8aa9"),
+          col = c("#7b99b7"),
+          clab = "F", alpha = 0.55, plot=FALSE, zlim = c(0,-200), 
           ticktype = "z",
           # labs axi
           xlab = "X", 
           ylab = "Y", 
           zlab = "Depth (m)",
           # width of mesh lines
-          lwd = 1,
+          lwd = 0.9,
           # 3Dmesh lines color
-          border = "grey40",
+          border = "grey60",
           # lithing and shade
           lighting = FALSE,
           # shade = 1,
@@ -395,7 +408,7 @@ plot3D::points3D(long_df_minmax$X, long_df_minmax$Y, long_df_minmax$Z*(-1),
 # Intersect ---------------------------------------------------------
 # add intersect raster points
 plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
-                 col="#582525", alpha = 0.15,
+                 col="#582525", alpha = 0.10,
                  pch = 19, # shape
                  cex = 2, # size
                  lit = TRUE, 
@@ -406,9 +419,9 @@ intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
 # add intermediate points (each 1 meter)
 for (i in 1:9) {
   plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
-                   col = "#582525", alpha = 0.15,
-                   pch = 19, # shape
-                   cex = 2, # size
+                   col = "#582525", alpha = 0.09,
+                   pch = 20, # shape
+                   cex = 2.2, # size
                    lit = TRUE, 
                    plot = FALSE,
                    add = TRUE)
@@ -417,9 +430,8 @@ for (i in 1:9) {
 
 
 
-
 # Plot rgl 3D final result
-plotrgl(lighting = FALSE, smooth = FALSE)
+plotrgl(lighting = FALSE, smooth = TRUE)
 
 
 ##  edit plot (theme)
@@ -428,9 +440,6 @@ axis3d("z", at = seq(-200, 0, by = 20), labels = seq(-200, 0, by = 20))
 
 # view
 rgl.viewpoint(theta = 0, phi = -78, fov = 20, zoom = 0.85)
-
-# rotate plot
-# play3d(spin3d(axis = c(0, 0, 1), rpm = 4))
 
 # extact informaton about view angles
 # myUserMatrix <- par3d()$userMatrix
@@ -448,20 +457,37 @@ myUserMatrix <- matrix(c(
 
 rgl.viewpoint(userMatrix = myUserMatrix, zoom = 0.83)
 
- 
+# rotate 3D plot
+# play3d(spin3d(axis = c(0, 0, 0.1), rpm = 1))
+
+# for smoothing movements
+# and for create gifs
+
+# movie3d(spin3d(axis = c(0, 0, 1), rpm = 2), 
+#                fps = 5,
+#                duration = 3,
+#                movie = "test",      
+#                dir = "C:/Users/J. Menéndez Blázquez/Desktop/borrar/gif_borrar",     
+#                type = "gif",       
+#                convert = NULL,
+#                clean = FALSE,  # keep picture per FPS
+#                verbose = TRUE,
+#                webshot = FALSE 
+# )
+
 
 # Export plots  HTML format         --------------------------------------------
 # save rgl window
 rgl_widget <- rglwidget(width = 2560, height = 1440)
 
 # export as .png
-rgl.snapshot(paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap.png"), fmt="png")
+rgl.snapshot(paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap_",daynight,".png"), fmt="png")
 
 # save as HTML interactive
-saveWidget(rgl_widget, paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap.html"))
+saveWidget(rgl_widget, paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap_",daynight,".html"))
 
 # export as .svg
-rgl.postscript(paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap.svg"), fmt = "svg")
+rgl.postscript(paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap_",daynight,".svg"), fmt = "svg")
 
 
 

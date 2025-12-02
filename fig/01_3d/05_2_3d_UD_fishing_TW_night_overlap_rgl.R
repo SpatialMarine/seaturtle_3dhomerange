@@ -6,7 +6,7 @@
 # Javier Menéndez-Blázquez | @jmenblaz
 
 # Plot 3D UD and overlap with fisheries
-# DAY
+# NIGHT
 
 
 # 0)  Load libraries ---------------------------------------------------
@@ -30,7 +30,7 @@ library(plot3D)
 organismID <- "200043"
 
 # select time period
-daynight <- "day"
+daynight <- "night"
 
 # Prepare and add 3D 50/95UD of organism ID 
 # load  kde result by organism ID
@@ -71,7 +71,7 @@ F=mkde.obj$d
 
 # 3) load fishing effort from extension of organism ID processed previously
 # 3.1) Longlines - --------------------------
-fishing_gear <- "LL"
+fishing_gear <- "TW"
 
 # load fishing data for this specific fishing gear
 rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_daynight/",organismID,"_3d_fishing-effort_",fishing_gear,"_",daynight,".tif"))
@@ -163,19 +163,18 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 # 5.1) UD 50 -------------------------------- -------------------------------------
     
  plot3D::isosurf3D(x, y, z, F, level = c(vol50), 
-              # col = c("#999ce8"), 
-              col = c("#FFE46A"),
+              col = c("#9ab6d4"),
               # col = c ("#FFE36B"),
-              clab = "F", alpha = 0.55, plot=FALSE, zlim = c(0,-200), 
+              clab = "F", alpha = 0.6, plot=FALSE, zlim = c(0,-200), 
               ticktype = "z",
               # labs axi
               xlab = "X", 
               ylab = "Y", 
               zlab = "Depth (m)",
               # width of mesh lines
-              lwd = 0.7,
+              lwd = 0.9,
               # 3Dmesh lines color
-              border = "grey60",
+              # border = "grey60",
               # lithing and shade
               lighting = FALSE,
               # shade = 1,
@@ -348,8 +347,8 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 
 # plot 3D rgl
 isosurf3D(x, y, z, F, level = c(vol95), 
-          # col = c("#999ce8"), 
-          col = c("#FFE46A"),
+          # col = c("#6b8aa9"),
+          col = c("#7b99b7"),
           clab = "F", alpha = 0.55, plot=FALSE, zlim = c(0,-200), 
           ticktype = "z",
           # labs axi
@@ -427,7 +426,6 @@ for (i in 1:9) {
                    plot = FALSE,
                    add = TRUE)
 }
-
 
 
 

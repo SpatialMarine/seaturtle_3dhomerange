@@ -4,7 +4,9 @@
 
 # Javier Menéndez-Blázquez | @jmenblaz
 
-# Plot 2D 50/95 UD and overlap with LL and TW
+# Plot 2D 50/95 UD and overlap with LL and TW fishing activities
+
+# ------------------------------------------------------------------------
 
 
 # load supplementaty package for map plotting
