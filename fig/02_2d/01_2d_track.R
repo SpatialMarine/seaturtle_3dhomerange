@@ -9,12 +9,17 @@
 
 # load supplementaty package for map plotting
 
+library(rmapshaper)
 library(ggplot2)
 library(tidyterra)
 library(raster)
 library(terra)
 library(sf)
 library(giscoR)
+library(smoothr)
+library(ggnewscale)
+library(ggblend)
+library(scales)
 
 source("setup.R")
 
@@ -48,7 +53,20 @@ b <- crop(b, extent(c(xlim, ylim)))
 visible_range <- range(values(b), na.rm = TRUE)
 
 
-# sea-turtle track and locs
+# hillshade of bathymetry
+slope <- terrain(b, v = "slope", unit = "radians")
+aspect <- terrain(b, v = "aspect", unit = "radians")
+# create slope max layer
+slope_max <- slope 
+slope_max[slope < 0.10] <- NA 
+
+# plot(slope)
+# plot(aspect)
+# plot(slope_max)  
+b_shade <- terra::shade(slope, aspect, angle = 45, direction = 315) # hillshade
+
+
+# sea-turtle track and locs ---------------
 track_line <- st_read(paste0(input_dir,"/gis/tracking/",organismID,"_L3_loc_track.gpkg"))
 locs <- read.csv(paste0(input_dir,"/tracking/loc/L3/",organismID,"_L3_loc.csv"))
 locs$time <- as.factor(locs$time) # for plot, faster than as.factor
@@ -63,11 +81,27 @@ start <- head(locs, 1)
 end  <- tail(locs, 1)
 
 
-
 # Plot map ----------------------------
 p <- ggplot() +
-  # add bathymetry
-  tidyterra::geom_spatraster(data = b, interpolate = TRUE) +
+  
+  ## ggblend  
+  list(
+    # hillshade
+    tidyterra::geom_spatraster(data = b_shade, interpolate = TRUE, alpha = 0.3),
+    scale_fill_gradient(low = alpha("grey5", 0.5), high = alpha("white", 1), guide = "none"),
+    
+    # bathymetry
+    new_scale_fill(),
+    tidyterra::geom_spatraster(data = b, interpolate = TRUE),
+    scale_fill_gradientn(
+      colors = cols,
+      name = "Depth (m)",
+      limits = visible_range,
+      na.value = "#FFFFFF",
+      guide = guide_colorbar(frame.colour = "grey5", ticks.colour = "grey5")
+    )
+  ) %>% blend("multiply") +
+  
   # color ramp
   scale_fill_gradientn(colors = cols,
                        name = "Depth (m)",
@@ -75,9 +109,14 @@ p <- ggplot() +
                        guide = guide_colorbar(frame.colour = "grey5", ticks.colour = "grey5"),
                        na.value = "#FFFFFF") +
   
+  # adding slope layer for shadows
+  ggnewscale::new_scale_fill() +
+  tidyterra::geom_spatraster(data = slope_max, interpolate = FALSE, alpha = 0.06) +
+  scale_fill_gradient(low = alpha("grey5", 0.1), high = alpha("grey1", 0.2), na.value = NA, guide = "none") + #alpha in color scales::
+  
   # sea-turtle track 
-  geom_sf(data = track_line, colour = "grey35", linewidth = 1, alpha = 0.5) +
-  geom_sf(data = track_line, colour = "grey15", linewidth = 0.45) +
+  geom_sf(data = track_line, colour = "grey35", linewidth = 1.2, alpha = 0.5) +
+  geom_sf(data = track_line, colour = "grey15", linewidth = 0.5) +
  
   # geom_path(data = locs,
   #           aes_string(x = "longitude", y = "latitude", group = "organismID", color = "time")) +
@@ -111,7 +150,7 @@ p <- ggplot() +
              size = 4) +
   
   # add land and coastline
-  geom_sf(data = world, fill="grey98", colour = "grey10", linewidth = 0.3) +
+  geom_sf(data = world, fill="grey98", colour = "grey20", linewidth = 0.3) +
   
   # spatial bounds
   # coord_sf(xlim = xl, ylim = yl, expand= TRUE) +
@@ -146,8 +185,8 @@ graphics.off()
 # # export map
 p_png <- paste0(output_dir,"/fig/fig_track2d.png")
 p_svg <- paste0(output_dir,"/fig/fig_track2d.svg")
-ggsave(p_png, p, width=14, height=14, units="cm", dpi=350, bg="white")
-ggsave(p_svg, p, width=14, height=14, units="cm", dpi=350, bg="white")
+ggsave(p_png, p, width=14, height=14, units="cm", dpi=400, bg="white")
+ggsave(p_svg, p, width=14, height=14, units="cm", dpi=300, bg="white")
 
 
 
