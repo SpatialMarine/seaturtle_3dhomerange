@@ -69,7 +69,7 @@ kde_result <- kde_result %>% filter (organismID == id)
 
 # read 2kde for organismID
 kde <- rast(paste0(output_dir,"/02_kde_2d/",organismID,"/",organismID,"_2dmkde_obj_raster.tif"))
-plot(kde)
+# plot(kde)
 
 
 
@@ -94,7 +94,8 @@ kde95[kde95 < threshold.95] <- NA
 # Convertir a polígonos
 ud50 <- as.polygons(kde50, dissolve = TRUE)
 ud95 <- as.polygons(kde95, dissolve = TRUE)
-plot(ud50)
+# plot(ud50)
+
 # Convert to sf
 ud50 <- st_as_sf(ud50)
 ud95 <- st_as_sf(ud95)
@@ -104,10 +105,10 @@ ud50 <- st_cast(ud50, "POLYGON")
 ud95 <- st_cast(ud95, "POLYGON")
 # Simplify UD for plotting
 # use ms_simplify instead sf::simplify to keep shapes (Visvalingam’s algorithm)
-ud50 <- rmapshaper::ms_simplify(ud50, keep = 0.9,
-                                keep_shapes = FALSE)
+ud50 <- rmapshaper::ms_simplify(ud50, keep = 0.5,
+                                keep_shapes = TRUE)
 
-ud95 <- rmapshaper::ms_simplify(ud95, keep = 0.9,
+ud95 <- rmapshaper::ms_simplify(ud95, keep = 0.3,
                                       keep_shapes = FALSE)
 
 # smooth shapes
@@ -124,7 +125,7 @@ q <- mean(ud95$area)
 ud95 <- ud95 %>% filter(area > q)
 
 # Check UD polygons resulted
-plot(ud50)
+plot(ud50$geometry)
 # plot(ud95)
 
 # add CRS similar to track (WGS84 - EPSG4326)

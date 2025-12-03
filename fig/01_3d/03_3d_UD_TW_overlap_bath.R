@@ -125,6 +125,7 @@ crs(TW) <- CRS("EPSG:3035")  # add CRS
 
 
 
+# V2 ----------------------------------
 
 # ------------------------------------------------------------------------------
 # UD 50 ------------------------------------------------------------------------
@@ -202,11 +203,11 @@ elevation.matrix  %>%
 rstack <- difference50
 
 # initial top and bottom values for polygons
-top <- 2.5
-bottom <- -5
-incr <- 5 # absolute value of increase
+top <- 7
+bottom <- -10
+incr <- 10 # absolute value of increase
 
-alpha <- 0.4
+alpha <- 0.5
 
 for (l in 1:nlayers(rstack)) {
   # info
@@ -223,7 +224,11 @@ for (l in 1:nlayers(rstack)) {
   
   # select layer
   layer <- rstack[[l]]
-  # plot(layer)
+
+  # for avoid fill holes extreme in one of the layer for this organismID
+  if (l == "2" & organismID == "200043") {
+    layer[layer < 0.000262] <- NA
+  }
   
   # poligonize raster -- conver to binary raster
   layer[layer > 0] <- 1  # avoid differenet polygons
@@ -237,20 +242,41 @@ for (l in 1:nlayers(rstack)) {
   # transform for same CRS of elevation.raster
   layer <- st_transform(layer, st_crs(elevation.raster))
   
+  # smooth polygons and fill holes in the layer
+  # two step smoothing 
+  # simlar approach to this applyed in 2D
+  
+  # from MULTIPOLYGON TO POLYGON
+  layer <- st_cast(layer, "POLYGON")
+  
+  # Simplify UD for plotting
+  # use ms_simplify instead sf::simplify to keep shapes (Visvalingam’s algorithm)
+  layer <- rmapshaper::ms_simplify(layer, keep = 0.3, keep_shapes = TRUE)
+  layer <- smoothr::smooth(layer, method = "ksmooth")
+  
+  # filter small UD areas detected for core area 50UD (less than mean of area)
+  layer$area <- st_area(layer)
+  q <- mean(layer$area)
+  layer <- layer %>% filter(area > q)
+  # plot(layer$geometry)
+  
+  
+  
   # clip / crop for bb extension (for potential bound excess)
   layer <- st_crop(layer, bb)
   # plot(layer$geometry)
   
-  # Note: polygons with "holes" or inside rings are not suitable to plot as 3D mesh
+  # Note**: polygons with "holes" or inside rings are not suitable to plot as 3D mesh
   #       in rayshader (for now)
   # fill inside level rings
   # use fill_inside_rings() custom function (analysis/z_other/fun/01_other_fun.R)
+  
   layer <- fill_inside_rings(layer)
   # plot(layer$geometry)
   
-  # two step smoothing 
-  layer <- rmapshaper::ms_simplify(layer, keep = 0.3, keep_shapes = T)
-  layer <- smoothr::smooth(layer, method = "ksmooth")
+  # # two step smoothing 
+  # layer <- rmapshaper::ms_simplify(layer, keep = 0.3, keep_shapes = T)
+  # layer <- smoothr::smooth(layer, method = "ksmooth")
   # plot(layer$geometry)
   
   if (l == 1) {
@@ -305,9 +331,9 @@ for (l in 1:nlayers(rstack)) {
 rstack <- intersect50
 
 # initial top and bottom values for polygons
-top <- 0.1
-bottom <- -6
-incr <- 6 # absolute value of increase
+top <- 7
+bottom <- -10
+incr <- 10 # absolute value of increase
 
 for (l in 1:nlayers(rstack)) {
   # info
@@ -326,6 +352,10 @@ for (l in 1:nlayers(rstack)) {
   layer <- rstack[[l]]
   # plot(layer)
   
+  # select layer
+  layer <- rstack[[l]]
+  # plot(layer)
+  
   # poligonize raster -- conver to binary raster
   layer[layer > 0] <- 1  # avoid differenet polygons
   layer <- raster::rasterToPolygons(layer, dissolve = TRUE)
@@ -338,21 +368,26 @@ for (l in 1:nlayers(rstack)) {
   # transform for same CRS of elevation.raster
   layer <- st_transform(layer, st_crs(elevation.raster))
   
-  # clip / crop for bb extension (for potential bound excess)
-  layer <- st_crop(layer, bb)
-  # plot(layer$geometry)
-  
-  # Note: polygons with "holes" or inside rings are not suitable to plot as 3D mesh
-  #       in rayshader (for now)
-  # fill inside level rings
-  # use fill_inside_rings() custom function (analysis/z_other/fun/01_other_fun.R)
-  layer <- fill_inside_rings(layer)
-  # plot(layer$geometry)
-  
+  # smooth polygons and fill holes in the layer
   # two step smoothing 
-  layer <- rmapshaper::ms_simplify(layer, keep = 0.3, keep_shapes = T)
+  # simlar approach to this applyed in 2D
+  
+  # from MULTIPOLYGON TO POLYGON
+  layer <- st_cast(layer, "POLYGON")
+  
+  # Simplify UD for plotting
+  # use ms_simplify instead sf::simplify to keep shapes (Visvalingam’s algorithm)
+  layer <- rmapshaper::ms_simplify(layer, keep = 0.3, keep_shapes = TRUE)
   layer <- smoothr::smooth(layer, method = "ksmooth")
   # plot(layer$geometry)
+  
+  # filter small UD areas detected for core area 50UD (less than mean of area)
+  layer$area <- st_area(layer)
+  q <- mean(layer$area)
+  layer <- layer %>% filter(area > q)
+  # plot(layer$geometry)
+  
+  # render polygons ----------------
   
   render_polygons(layer,
                   extent = attr(elevation.raster, "extent"),
@@ -454,7 +489,7 @@ for (l in 1:nlayers(rstack)) {
                   scale_data = my.z,
                   holes = 0,
                   color = "salmon3",
-                  alpha = 0.5,
+                  alpha = 0.4,
                   parallel = FALSE,
                   # light parameters
                   # lit = TRUE,  # Keep light
@@ -513,28 +548,28 @@ render_polygons(land,
 render_camera(theta = 315, phi = 25, zoom = 0.5, fov = 10)
 # export / save diorama 
 # render snapshot
-render_snapshot(filename = paste0(output_dir, "/fig/fig_TW_UD50_overlap_3d.png"))
+render_snapshot(filename = paste0(output_dir, "/fig/fig_TW_UD50_overlap_3d_v2.png"))
 
 
 # point of view for differenrts plots ----------------------------------------- 
 render_camera(theta = 90, phi = 0.0, zoom = 0.28, fov = 0)
 # export / save diorama 
 # render snapshot
-render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_lowcam_90.png"))
+render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_lowcam_90_v2.png"))
 
 
 # point of view for differenrts plots ----------------------------------------- 
 render_camera(theta = 270, phi = 0.0, zoom = 0.28, fov = 0)
 # export / save diorama 
 # render snapshot
-render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_lowcam_270.png"))
+render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_lowcam_270_v2.png"))
 
 
 # point of view for differenrts plots ----------------------------------------- 
 render_camera(theta = 0, phi = 90, zoom = 0.6, fov = 0)
 # export / save diorama --------------------------------------------------------
 # render snapshot
-render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_cenital.png"))
+render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_cenital_v2.png"))
 
 # note** high comsuming time process
 # highquality
@@ -556,6 +591,8 @@ render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_TW_UD50_overlap_3d_c
 
 
 
+
+# V1 -----------
 
 
 # ------------------------------------------------------------------------------
