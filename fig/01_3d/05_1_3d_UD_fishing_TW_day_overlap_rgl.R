@@ -159,7 +159,7 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 # 5) 3D Plot ----------------------------------------------------------
 # Plot separate UD50 and UD 95 for improve visualization
 # "#999ce8","#9396db", "#868ada", "#787bc4"
-
+# V1 ------
 # 5.1) UD 50 -------------------------------- -------------------------------------
     
  plot3D::isosurf3D(x, y, z, F, level = c(vol50), 
@@ -317,6 +317,7 @@ rgl.postscript(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap_
 
 
 
+# V2 ------
 
 # -----------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
@@ -346,20 +347,22 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 
 
 
+
+
 # plot 3D rgl
 isosurf3D(x, y, z, F, level = c(vol95), 
           # col = c("#999ce8"), 
-          col = c("#FFE46A"),
-          clab = "F", alpha = 0.55, plot=FALSE, zlim = c(0,-200), 
+          col = c("#FFCC00"),
+          clab = "F", alpha = 0.3, plot=FALSE, zlim = c(0,-200), 
           ticktype = "z",
           # labs axi
           xlab = "X", 
           ylab = "Y", 
           zlab = "Depth (m)",
           # width of mesh lines
-          lwd = 0.9,
+          # lwd = 0.9,
           # 3Dmesh lines color
-          border = "grey60",
+          # border = "grey60",
           # lithing and shade
           lighting = FALSE,
           # shade = 1,
@@ -372,7 +375,7 @@ isosurf3D(x, y, z, F, level = c(vol95),
 
 # plot point of raster
 plot3D::points3D(long_df$X, long_df$Y, long_df$Z*(-1), 
-                 col="salmon2", alpha = 0.02,
+                 col="salmon1", alpha = 0.04,
                  pch = 16, # shape
                  cex = 1.1, # size
                  lit = TRUE, 
@@ -386,7 +389,7 @@ long_df_inter <- long_df %>% filter(Z != max(long_df$Z))
 # plot intermediate points (each 1 meter)
 for (i in 1:9) {
   plot3D::points3D(long_df_inter$X, long_df_inter$Y, (long_df_inter$Z*(-1)) - i, 
-                   col="salmon2", alpha = 0.02,
+                   col="salmon1", alpha = 0.04,
                    pch = 16, # shape
                    cex = 1.1, # size
                    lit = TRUE, 
@@ -409,9 +412,9 @@ plot3D::points3D(long_df_minmax$X, long_df_minmax$Y, long_df_minmax$Z*(-1),
 # Intersect ---------------------------------------------------------
 # add intersect raster points
 plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
-                 col="#582525", alpha = 0.10,
+                 col="#582525", alpha = 0.25,
                  pch = 19, # shape
-                 cex = 2, # size
+                 cex = 1.5, # size
                  lit = TRUE, 
                  plot = FALSE,
                  add = TRUE)
@@ -420,14 +423,13 @@ intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
 # add intermediate points (each 1 meter)
 for (i in 1:9) {
   plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
-                   col = "#582525", alpha = 0.09,
+                   col = "#582525", alpha = 0.1,
                    pch = 20, # shape
                    cex = 2.2, # size
                    lit = TRUE, 
                    plot = FALSE,
                    add = TRUE)
 }
-
 
 
 

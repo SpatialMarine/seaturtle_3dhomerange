@@ -346,86 +346,87 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
 
 
 # plot 3D rgl
-isosurf3D(x, y, z, F, level = c(vol95), 
-          # col = c("#6b8aa9"),
-          col = c("#7b99b7"),
-          clab = "F", alpha = 0.55, plot=FALSE, zlim = c(0,-200), 
-          ticktype = "z",
-          # labs axi
-          xlab = "X", 
-          ylab = "Y", 
-          zlab = "Depth (m)",
-          # width of mesh lines
-          lwd = 0.9,
-          # 3Dmesh lines color
-          border = "grey60",
-          # lithing and shade
-          lighting = FALSE,
-          # shade = 1,
-          # facets = TRUE, 
-          # view
-          theta = 120,
-          phi = 30,
-          # legend
-          colkey = NULL)
-
-# plot point of raster
-plot3D::points3D(long_df$X, long_df$Y, long_df$Z*(-1), 
-                 col="salmon2", alpha = 0.02,
-                 pch = 16, # shape
-                 cex = 1.1, # size
-                 lit = TRUE, 
-                 plot = FALSE,
-                 add = TRUE)
-
-
-# add intermediate values
-# filter pointcloud by maximum depth
-long_df_inter <- long_df %>% filter(Z != max(long_df$Z))
-# plot intermediate points (each 1 meter)
-for (i in 1:9) {
-  plot3D::points3D(long_df_inter$X, long_df_inter$Y, (long_df_inter$Z*(-1)) - i, 
-                   col="salmon2", alpha = 0.02,
+  plot3D::isosurf3D(x, y, z, F, level = c(vol95), 
+                    col = c("#6FA4D9"),
+                    clab = "F", alpha = 0.3, plot=FALSE, zlim = c(0,-200), 
+                    ticktype = "z",
+                    # labs axi
+                    xlab = "X", 
+                    ylab = "Y", 
+                    zlab = "Depth (m)",
+                    # width of mesh lines
+                    # = 0.9,
+                    # 3Dmesh lines color
+                    # border = "grey60",
+                    # lithing and shade
+                    lighting = FALSE,
+                    # shade = 1,
+                    # facets = TRUE, 
+                    # view
+                    theta = 120,
+                    phi = 30,
+                    # legend
+                    colkey = NULL)
+    
+  
+  # plot point of raster
+  plot3D::points3D(long_df$X, long_df$Y, long_df$Z*(-1), 
+                   col="salmon1", alpha = 0.04,
                    pch = 16, # shape
                    cex = 1.1, # size
                    lit = TRUE, 
                    plot = FALSE,
                    add = TRUE)
-}
-
-# marked minimun and maximum depths
-long_df_minmax <- long_df %>% filter(Z == max(long_df$Z) | Z == min(long_df$Z))
-
-plot3D::points3D(long_df_minmax$X, long_df_minmax$Y, long_df_minmax$Z*(-1),
-                 col="grey10", alpha = 0.02,
-                 pch = 16, # shape
-                 cex = 1.1, # size
-                 lit = TRUE,
-                 plot = FALSE,
-                 add = TRUE)
-
-
-# Intersect ---------------------------------------------------------
-# add intersect raster points
-plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
-                 col="#582525", alpha = 0.10,
-                 pch = 19, # shape
-                 cex = 2, # size
-                 lit = TRUE, 
-                 plot = FALSE,
-                 add = TRUE)
-
-intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
-# add intermediate points (each 1 meter)
-for (i in 1:9) {
-  plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
-                   col = "#582525", alpha = 0.09,
-                   pch = 20, # shape
-                   cex = 2.2, # size
+  
+  
+  # add intermediate values
+  # filter pointcloud by maximum depth
+  long_df_inter <- long_df %>% filter(Z != max(long_df$Z))
+  # plot intermediate points (each 1 meter)
+  for (i in 1:9) {
+    plot3D::points3D(long_df_inter$X, long_df_inter$Y, (long_df_inter$Z*(-1)) - i, 
+                     col="salmon1", alpha = 0.04,
+                     pch = 16, # shape
+                     cex = 1.1, # size
+                     lit = TRUE, 
+                     plot = FALSE,
+                     add = TRUE)
+  }
+  
+  # marked minimun and maximum depths
+  long_df_minmax <- long_df %>% filter(Z == max(long_df$Z) | Z == min(long_df$Z))
+  
+  plot3D::points3D(long_df_minmax$X, long_df_minmax$Y, long_df_minmax$Z*(-1),
+                   col="grey10", alpha = 0.02,
+                   pch = 16, # shape
+                   cex = 1.1, # size
+                   lit = TRUE,
+                   plot = FALSE,
+                   add = TRUE)
+  
+  
+  # Intersect ---------------------------------------------------------
+  # add intersect raster points
+  plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
+                   col="#582525", alpha = 0.25,
+                   pch = 19, # shape
+                   cex = 1.5, # size
                    lit = TRUE, 
                    plot = FALSE,
                    add = TRUE)
-}
+  
+  intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
+  # add intermediate points (each 1 meter)
+  for (i in 1:9) {
+    plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
+                     col = "#582525", alpha = 0.1,
+                     pch = 20, # shape
+                     cex = 2.2, # size
+                     lit = TRUE, 
+                     plot = FALSE,
+                     add = TRUE)
+  }
+
 
 
 

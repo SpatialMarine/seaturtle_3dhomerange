@@ -6,8 +6,8 @@
 project <- "seaturtle_3dhomerange"
 
 # set computer
-# cpu <- "jmb"
-cpu <- "jmbSML"
+cpu <- "jmb"
+# cpu <- "jmbSML"
 
 # packages
 
