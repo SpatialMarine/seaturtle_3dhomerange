@@ -160,7 +160,7 @@ LL <- fill_inside_rings(LL)
 # two step smoothing 
 LL <- rmapshaper::ms_simplify(LL, keep = 0.3, keep_shapes = T)
 LL <- smoothr::smooth(LL, method = "ksmooth")
-plot(LL$geometry)
+# plot(LL$geometry)
 
 
 
@@ -505,7 +505,7 @@ render_polygons(land,
 
 
 
-# point of view for differenrts plots ----------------------------------------- 
+# point of view for different plots ----------------------------------------- 
 render_camera(theta = 315, phi = 25, zoom = 0.5, fov = 10)
 # export / save diorama 
 # render snapshot
@@ -547,9 +547,7 @@ render_snapshot(filename = paste0(output_dir, "/fig/sup_fig_LL_UD50_overlap_3d_c
 rgl_widget <- rglwidget(width = 2560, height = 1440)
 
 # save as HTML interactive
-saveWidget(rgl_widget, paste0(output_dir,"/fig/fig_LL_UD50_overlap_3d_v2.html"))
-
-
+htmlwidgets::saveWidget(rgl_widget, paste0(output_dir,"/fig/fig_LL_UD50_overlap_3d_v2.html"))
 
 
 
