@@ -21,6 +21,7 @@ library(plot3Drgl)
 library(orientlib)
 library(plot3D)
 
+gif_plot <- TRUE
 
 # 1) import organismID for location data, kde results, and ttdr data for plot
 # 181762
@@ -320,8 +321,8 @@ rgl.postscript(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap_
 # ------------------------------------------------------------------------------
 # 5.2) UD 95 -------------------------------------------------------------------
 
-# load fishing data for this specific fishing gear
-rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,".tif"))
+# load fishing data for this specific fishing gear per daynight period
+rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap_daynight/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,"_",daynight,".tif"))
 crs(rstack) <- CRS("EPSG:3035")  # add CRS
 names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
 
@@ -463,17 +464,32 @@ rgl.viewpoint(userMatrix = myUserMatrix, zoom = 0.83)
 # for smoothing movements
 # and for create gifs
 
-# movie3d(spin3d(axis = c(0, 0, 1), rpm = 2), 
-#                fps = 5,
-#                duration = 3,
-#                movie = "test",      
-#                dir = "C:/Users/J. Menéndez Blázquez/Desktop/borrar/gif_borrar",     
-#                type = "gif",       
-#                convert = NULL,
-#                clean = FALSE,  # keep picture per FPS
-#                verbose = TRUE,
-#                webshot = FALSE 
-# )
+if (gif_plot) {
+  
+  #  1) create frames
+  rgl::movie3d(spin3d(axis = c(0, 0, 1), rpm = 2),
+               fps = 5,
+               duration = 60,
+               movie = "3d_95UD_LL_fishing_overlap_night_",
+               dir = paste0(output_dir,"/temp_gif"),
+               type = "gif",
+               convert = NULL,
+               clean = FALSE,  # keep picture per FPS --> Step 2
+               verbose = TRUE,
+               webshot = FALSE)
+  
+  # 2) create gif
+  library(magick)
+  
+  imgs <- list.files(paste0(output_dir,"/temp_gif"), full.names = TRUE)
+  frames <- magick::image_read(imgs)   # lee todas las imágenes
+  gif <- magick::image_animate(frames, fps = 5)  # fps = velocidad del GIF
+  # export
+  magick::image_write(gif, paste0(output_dir,"/fig/3d_95UD_LL_fishing_overlap_night.gif"))
+  # remove frames file
+  file.remove(imgs)
+  
+}
 
 
 # Export plots  HTML format         --------------------------------------------

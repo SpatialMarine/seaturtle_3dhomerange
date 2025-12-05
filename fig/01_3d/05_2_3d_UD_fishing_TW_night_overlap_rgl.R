@@ -315,14 +315,14 @@ rgl.postscript(paste0(output_dir,"/fig/3d_50UD_",fishing_gear,"_fishing_overlap_
 
 
 
-
+# V2 ---------------------------------
 
 # -----------------------------------------------------------------------------
 # ------------------------------------------------------------------------------
 # 5.2) UD 95 -------------------------------------------------------------------
 
 # load fishing data for this specific fishing gear
-rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,".tif"))
+rstack <- raster::stack(paste0(main_dir,"/output/03_fishing_3d_overlap_daynight/",organismID,"_3d_kde_fishing_intersect_",fishing_gear,"_",daynight,".tif"))
 crs(rstack) <- CRS("EPSG:3035")  # add CRS
 names(rstack) <- paste("layer", 1:nlayers(rstack), sep = ".")  # rename layers
 
@@ -371,9 +371,9 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
   
   # plot point of raster
   plot3D::points3D(long_df$X, long_df$Y, long_df$Z*(-1), 
-                   col="salmon1", alpha = 0.04,
+                   col="salmon1", alpha = 0.05,
                    pch = 16, # shape
-                   cex = 1.1, # size
+                   cex = 1.3, # size
                    lit = TRUE, 
                    plot = FALSE,
                    add = TRUE)
@@ -385,9 +385,9 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
   # plot intermediate points (each 1 meter)
   for (i in 1:9) {
     plot3D::points3D(long_df_inter$X, long_df_inter$Y, (long_df_inter$Z*(-1)) - i, 
-                     col="salmon1", alpha = 0.04,
+                     col="salmon1", alpha = 0.05,
                      pch = 16, # shape
-                     cex = 1.1, # size
+                     cex = 1.3, # size
                      lit = TRUE, 
                      plot = FALSE,
                      add = TRUE)
@@ -405,27 +405,30 @@ intersect_df <- intersect_df[, c("X", "Y", "Z")]
                    add = TRUE)
   
   
-  # Intersect ---------------------------------------------------------
-  # add intersect raster points
-  plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
-                   col="#582525", alpha = 0.25,
-                   pch = 19, # shape
-                   cex = 1.5, # size
-                   lit = TRUE, 
-                   plot = FALSE,
-                   add = TRUE)
+  # NO intersect for this organismID 200043 in the night with fisheries 
+  # Good example to visualize the differece between fishing gears and daynight period
   
-  intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
-  # add intermediate points (each 1 meter)
-  for (i in 1:9) {
-    plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
-                     col = "#582525", alpha = 0.1,
-                     pch = 20, # shape
-                     cex = 2.2, # size
-                     lit = TRUE, 
-                     plot = FALSE,
-                     add = TRUE)
-  }
+  # # Intersect ---------------------------------------------------------
+  # # add intersect raster points
+  # plot3D::points3D(intersect_df$X, intersect_df$Y, intersect_df$Z*(-1), 
+  #                  col="#582525", alpha = 0.25,
+  #                  pch = 19, # shape
+  #                  cex = 1.5, # size
+  #                  lit = TRUE, 
+  #                  plot = FALSE,
+  #                  add = TRUE)
+  # 
+  # intersect_df_inter <- intersect_df %>% filter(Z != max(long_df$Z))
+  # # add intermediate points (each 1 meter)
+  # for (i in 1:9) {
+  #   plot3D::points3D(intersect_df_inter$X, intersect_df_inter$Y, (intersect_df_inter$Z*(-1)) - i, 
+  #                    col = "#582525", alpha = 0.1,
+  #                    pch = 20, # shape
+  #                    cex = 2.2, # size
+  #                    lit = TRUE, 
+  #                    plot = FALSE,
+  #                    add = TRUE)
+  # }
 
 
 
@@ -458,23 +461,7 @@ myUserMatrix <- matrix(c(
 
 rgl.viewpoint(userMatrix = myUserMatrix, zoom = 0.83)
 
-# rotate 3D plot
-# play3d(spin3d(axis = c(0, 0, 0.1), rpm = 1))
 
-# for smoothing movements
-# and for create gifs
-
-# movie3d(spin3d(axis = c(0, 0, 1), rpm = 2), 
-#                fps = 5,
-#                duration = 3,
-#                movie = "test",      
-#                dir = "C:/Users/J. Menéndez Blázquez/Desktop/borrar/gif_borrar",     
-#                type = "gif",       
-#                convert = NULL,
-#                clean = FALSE,  # keep picture per FPS
-#                verbose = TRUE,
-#                webshot = FALSE 
-# )
 
 
 # Export plots  HTML format         --------------------------------------------
@@ -492,8 +479,35 @@ rgl.postscript(paste0(output_dir,"/fig/3d_95UD_",fishing_gear,"_fishing_overlap_
 
 
 
+# rotate 3D plot --------------------------------------------------------------
+# play3d(spin3d(axis = c(0, 0, 0.1), rpm = 1))
 
-
+if (gif_plot) {
+  
+  #  1) create frames
+  rgl::movie3d(spin3d(axis = c(0, 0, 1), rpm = 2),
+               fps = 5,
+               duration = 60,
+               movie = "3d_95UD_TW_fishing_overlap_day_",
+               dir = paste0(output_dir,"/temp_gif"),
+               type = "gif",
+               convert = NULL,
+               clean = FALSE,  # keep picture per FPS --> Step 2
+               verbose = TRUE,
+               webshot = FALSE)
+  
+  # 2) create gif
+  library(magick)
+  
+  imgs <- list.files(paste0(output_dir,"/temp_gif"), full.names = TRUE)
+  frames <- magick::image_read(imgs)   # lee todas las imágenes
+  gif <- magick::image_animate(frames, fps = 5)  # fps = velocidad del GIF
+  # export
+  magick::image_write(gif, paste0(output_dir,"/fig/3d_95UD_TW_fishing_overlap_night.gif"))
+  # remove frames file
+  file.remove(imgs)
+  
+}
 
 
 

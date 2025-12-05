@@ -15,6 +15,8 @@
 
 library(gridExtra)
 library(ggnewscale)
+library(dplyr)
+library(ggplot2)
 
 # Panel exploratorio de movimientos verticales (ver si los buceos so n más rapidos, 
 # profundos, etc por el dia, noche, meses iluminación de luna (da cara al hábitat modelling). Horton et al. 2025
@@ -34,6 +36,19 @@ data$moon_bright_class <- as.factor(data$moon_bright_class)
 # summary
 # mean daily maximum depth (day and night time) and VMR
 data$day_of_year <- as.numeric(format(as.Date(data$date), "%j"))
+
+
+# Filter obs per study area extent (some dives outside)
+e <- read_sf(paste0(input_dir,"/gis/study_area.gpkg"))  
+e <- st_bbox(e)
+
+# filter dives into study area
+data <- subset(data,
+               longitude >= e["xmin"] &
+                 longitude <= e["xmax"] &
+                 latitude  >= e["ymin"] &
+                 latitude  <= e["ymax"])
+
 
 # summary and stats per day and daynight period)
 stats <- data %>%
@@ -83,7 +98,7 @@ stats <- left_join(stats, individuals_per_day_total, by = "day_of_year")
 # 1) Plot mean depths max depths by day and night
 pmean <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_meandep, color = daynight)) +
             # Standard deviation
-            geom_ribbon(aes(ymin = Lower_meandep, ymax = Upper_meandep, fill = daynight), alpha = 0.25, color = NA) +
+            geom_ribbon(aes(ymin = pmax(Lower_meandep, 0), ymax = Upper_meandep, fill = daynight), alpha = 0.25, color = NA) +
             
             # Sombra gris para 'day' y 'night'
             stat_smooth(data = subset(stats, daynight == "day"), aes(color = NULL), 
@@ -132,7 +147,8 @@ pmean
 
 pmax <- ggplot(stats, aes(x = day_of_year_shifted, y = mean_maxdep, color = daynight)) +
   # Standarz deviation
-  geom_ribbon(aes(ymin = Lower_maxdep, ymax = Upper_maxdep, fill = daynight), alpha = 0.25, color = NA) +
+  # limit ymin to 0 (not SD into surface)
+  geom_ribbon(aes(ymin = pmax(Lower_maxdep, 0), ymax = Upper_maxdep, fill = daynight), alpha = 0.25, color = NA) +
   
   # Sombra gris para 'day' y 'night'
   stat_smooth(data = subset(stats, daynight == "day"), aes(color = NULL), 
@@ -298,8 +314,8 @@ p
 # Export / save plots
 output_fig <- paste0(output_dir,"/fig")
 
-p_png <- paste0(output_fig,"/","fig_vertial_habitat_use_panel.png")
-p_svg <- paste0(output_fig,"/","fig_vertial_habitat_use_panel.svg")
+p_png <- paste0(output_fig,"/","fig_vertial_habitat_use_panel_v2.png")
+p_svg <- paste0(output_fig,"/","fig_vertial_habitat_use_panel_v2.svg")
 ggsave(p_png, p, width=22, height=24, units="cm", dpi=400, bg="white")
 ggsave(p_svg, p, width=22, height=24, units="cm", dpi=400, bg="white")
 
