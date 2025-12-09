@@ -87,7 +87,7 @@ F=mkde.obj$d
               theta = 120,
               phi = 30,
               # legend
-              colkey = NULL)
+              colkey = FALSE)
     
 
 
@@ -159,6 +159,41 @@ saveWidget(rgl_widget, paste0(output_dir,"/fig/3d_UD_day.html"))
 rgl.postscript(paste0(output_dir,"/fig/3d_UD_day.svg"), fmt = "svg")
 
 
+# gif
+if (gif_plot) {
+  
+  #  1) create frames
+  rgl::movie3d(spin3d(axis = c(0, 0, 1), rpm = 2),
+               fps = 5,
+               duration = 60,
+               movie = "3d_UD_day_",
+               dir = paste0(output_dir,"/temp_gif"),
+               type = "gif",
+               convert = NULL,
+               clean = FALSE,  # keep picture per FPS --> Step 2
+               verbose = TRUE,
+               webshot = FALSE)
+  
+  # 2) create gif
+  library(magick)
+  
+  imgs <- list.files(paste0(output_dir,"/temp_gif"), full.names = TRUE)
+  frames <- magick::image_read(imgs)   # lee todas las imágenes
+  gif <- magick::image_animate(frames, fps = 5)  # fps = velocidad del GIF
+  # export
+  magick::image_write(gif, paste0(output_dir,"/fig/3d_UD_day.gif"))
+  # remove frames file
+  file.remove(imgs)
+}
+
+
+
+
+
+
+
+
+
 
 
 
@@ -225,7 +260,7 @@ isosurf3D(x, y, z, F, level = c(vol50, vol95),
           theta = 120,
           phi = 30,
           # legend
-          colkey = NULL)
+          colkey = FALSE)
 
 
 
@@ -298,6 +333,33 @@ rgl.postscript(paste0(output_dir,"/fig/3d_UD_night.svg"), fmt = "svg")
 
 
 
+
+
+if (gif_plot) {
+  
+  #  1) create frames
+  rgl::movie3d(spin3d(axis = c(0, 0, 1), rpm = 2),
+               fps = 5,
+               duration = 60,
+               movie = "3d_UD_night_",
+               dir = paste0(output_dir,"/temp_gif"),
+               type = "gif",
+               convert = NULL,
+               clean = FALSE,  # keep picture per FPS --> Step 2
+               verbose = TRUE,
+               webshot = FALSE)
+  
+  # 2) create gif
+  library(magick)
+  
+  imgs <- list.files(paste0(output_dir,"/temp_gif"), full.names = TRUE)
+  frames <- magick::image_read(imgs)   # lee todas las imágenes
+  gif <- magick::image_animate(frames, fps = 5)  # fps = velocidad del GIF
+  # export
+  magick::image_write(gif, paste0(output_dir,"/fig/3d_UD_night.gif"))
+  # remove frames file
+  file.remove(imgs)
+}
 
 
 
