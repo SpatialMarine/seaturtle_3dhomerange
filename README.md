@@ -2,8 +2,7 @@
 
 This repository provides the R code used in the following research paper:
 
-Javier Menéndez-Blázquez <a href="https://orcid.org/0000-0002-1882-7896"><img src="images/orcid.svg" alt="ORCID logo" width="21"/></a>, Mara Segovia, and David March. Leveraging earth observation data to monitor boat-based recreational fishing.
-
+Javier Menéndez-Blázquez <a href="https://orcid.org/0000-0002-1882-7896"><img src="images/orcid.svg" alt="ORCID logo" width="21"/></a>, Jessica Ruff, Ricardo Sagarminaga, Brendan J. Godley, and David March.
 ------------------------------------------------------------------------
 
 ### Repository structure
