@@ -73,7 +73,7 @@ locale <- "en_US.UTF-8"
 
 # ------------------------------------------------------------------------------
 # 1. Set main data paths ---------
-if(cpu == "jmb")    main_dir <- paste0("C:/Users/J. Menéndez Blázquez/SML_Dropbox/SML Dropbox/gitdata/",project)
+if(cpu == "jmb")    main_dir <- paste0("C:/Users/J. Menéndez Blázquez/SML Dropbox/gitdata/",project)
 if(cpu == "jmbSML") main_dir <- paste0("C:/Users/jmb/SML Dropbox/gitdata/seaturtle_3dhomerange")
 
 

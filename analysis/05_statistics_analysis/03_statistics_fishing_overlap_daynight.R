@@ -10,6 +10,7 @@
 # Day / Night values provided bu the overlap with GFW fishing events
 
 library(dplyr)
+library(ggplot2)
 
 # 0) path
 source("setup.R")
@@ -57,22 +58,32 @@ wilcox.test(df2d_day$ud95_intersect_percentage,
             df3d_day$udvol95_intersect_percentage,
             paired = TRUE)
 
-summary(df2d_day$ud95_intersect_percentage)
-summary(df3d_day$udvol95_intersect_percentage)
-
-sd(df2d_day$ud95_intersect_percentage)
-sd(df3d_day$udvol95_intersect_percentage)
-
 # results: 
-  #     Wilcoxon signed rank test with continuity correction
-  # 
-  #     data:  df2d_day$ud95_intersect_percentage and 
-  #            df3d_day$udvol95_intersect_percentage
-  #     V = 1477, p-value = 3.12e-08 *** p < 0.05
-  #     alternative hypothesis: true location shift is not equal to 0
-  #     Note: difference between data is not 0 and significant
+#     Wilcoxon signed rank test with continuity correction
+# 
+#     data:  df2d_day$ud95_intersect_percentage and 
+#            df3d_day$udvol95_intersect_percentage
+#     V = 1477, p-value = 3.12e-08 *** p < 0.05
+#     alternative hypothesis: true location shift is not equal to 0
+#     Note: difference between data is not 0 and significant
 
 #  ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD95
+
+summary(df2d_day$ud95_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.3328  8.0811 17.5710 20.4572 32.3675 53.8857 
+
+summary(df3d_day$udvol95_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.819   3.669   7.224  11.284  16.882  35.248 
+
+sd(df2d_day$ud95_intersect_percentage)
+# 14.77301
+sd(df3d_day$udvol95_intersect_percentage)
+(df3d_day$udvol95_intersect_percentage)
+# 9.246673
+
+
 
 
 # correlation test
@@ -94,27 +105,34 @@ cor.test(df2d_day$ud95_intersect_percentage, df3d_day$udvol95_intersect_percenta
 
 ######  Night 2D/3D --------- 
 wilcox.test(df2d_night$ud95_intersect_percentage,
-                         df3d_night$udvol95_intersect_percentage,
-                         paired = TRUE)
+            df3d_night$udvol95_intersect_percentage,
+            paired = TRUE)
 
 # results:
     # Wilcoxon signed rank test with continuity correction
-    # V = 1330, p-value = 1.454e-05
+    # V = 1464, p-value = 5.682e-08
     # alternative hypothesis: true location shift is not equal to 0
 
 #  ✔  Higher values of % of intersection in 2D during the NIGHT than 3D for UD95
 
 summary(df2d_night$ud95_intersect_percentage)
-summary(df3d_night$udvol95_intersect_percentage)
-
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.7194  7.6279 15.4314 18.8677 28.5648 55.395
 sd(df2d_night$ud95_intersect_percentage)
-sd(df3d_night$udvol95_intersect_percentage)
+# 14.25875
 
+summary(df3d_night$udvol95_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.761   3.684   5.727   8.604  11.906  39.007
+
+sd(df3d_night$udvol95_intersect_percentage)
+#  7.144637
 
 # correlation test
 cor.test(df2d_night$ud95_intersect_percentage, df3d_night$udvol95_intersect_percentage, 
          method = "spearman")
 #   There is a positive correlation between the percentage of intersection
+# S = 11626, p-value = 8.886e-07
 #   ✔  If a individual present high percentage of intersection in 2D,
 #   ✔   t will have too in 3D  for the night (and for UD95)
 
@@ -138,15 +156,21 @@ wilcox.test(df2d_day$ud50_intersect_percentage, df3d_day$udvol50_intersect_perce
 # ✔  Higher values of % of intersection in 2D during the  DAY than 3D for UD50
 
 summary(df2d_day$ud50_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.000   6.821  17.354  21.789  35.725  72.109 
+
 summary(df3d_day$udvol50_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.773   2.604   4.222   8.159  11.419  43.759 
 
 sd(df2d_day$ud50_intersect_percentage)
+# 18.425
 sd(df3d_day$udvol50_intersect_percentage)
+# 8.279484
 
 # correlation test
 cor.test(df2d_day$ud50_intersect_percentage, df3d_day$udvol50_intersect_percentage, 
          method = "spearman")
-
 # S = 13801, p-value = 2.849e-05
 
 #   There is a positive correlation between the percentage of intersection
@@ -166,18 +190,26 @@ shapiro.test((df3d_night$udvol50_intersect_percentage))
 wilcox.test(df2d_night$ud50_intersect_percentage, df3d_night$udvol50_intersect_percentage, 
             paired = TRUE)
 # results:
-# V = 1275, p-value = 0.0001015
+# V = 1437, p-value = 1.906e-07
 
 summary(df2d_night$ud50_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 0.000   4.447  12.509  18.815  31.985  71.144 
+
 summary(df3d_night$udvol50_intersect_percentage)
+# Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+# 1.694   2.496   3.817   5.095   5.895  25.466 
 
 sd(df2d_night$ud50_intersect_percentage)
+# 17.63774
 sd(df3d_night$udvol50_intersect_percentage)
+#  4.693863
 
 # correlation test
 cor.test(df2d_night$ud50_intersect_percentage, df3d_night$udvol50_intersect_percentage, 
          method = "spearman")
 
+# S = 18124, p-value = 0.003808
 #   ✔  There is a positive correlation between the percentage of intersection
 
 #------------------------------------------------------------------------------
@@ -199,13 +231,14 @@ cor.test(df2d_night$ud50_intersect_percentage, df3d_night$udvol50_intersect_perc
 # 2D y 3D consistence within groups (LL y TW) for day and night
 
 #   1.2.1) for drifting longlines (LL) --------------------------------------
+
 # DAY 
 df2dLL_day <- df2d_day %>% filter(fishing_gear == "LL")
 df3dLL_day <- df3d_day %>% filter(fishing_gear == "LL")
 
 
 
-# UD 95 --------------------------------------------------------
+# UD 95 DAY --------------------------------------------------------
 # Normality test - Shapiro test
 shapiro.test((df2dLL_day$ud95_intersect_percentage))  # Normal
 shapiro.test((df3dLL_day$udvol95_intersect_percentage))  # Normal
@@ -225,9 +258,14 @@ t.test(df2dLL_day$ud95_intersect_percentage, df3dLL_day$udvol95_intersect_percen
 summary(df2dLL_day$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 7.229  20.982  32.492  29.815  40.832  53.886
+sd(df2dLL_day$ud95_intersect_percentage)
+# 13.96976
+
 summary(df3dLL_day$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 5.236   9.860  16.114  17.504  24.191  35.248
+sd(df3dLL_day$udvol95_intersect_percentage)
+# 8.861637
 
 # correlation test
 cor.test(df2dLL_day$ud95_intersect_percentage, df3dLL_day$udvol95_intersect_percentage, 
@@ -242,7 +280,7 @@ cor.test(df2dLL_day$ud95_intersect_percentage, df3dLL_day$udvol95_intersect_perc
 
 
 
-# UD 50 --------------------------------------------------------
+# UD 50 DAY --------------------------------------------------------
 # Normality test - Shapiro test
 shapiro.test((df2dLL_day$ud50_intersect_percentage)) # Normal
 shapiro.test((df3dLL_day$udvol50_intersect_percentage)) # No Normal
@@ -263,10 +301,15 @@ t.test(df2dLL_day$ud50_intersect_percentage, df3dLL_day$udvol50_intersect_percen
 
 summary(df2dLL_day$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 3.516  18.154  35.737  32.995  45.144  72.109 
+# 3.516  18.154  35.737  32.995  45.144  72.109
+sd(df2dLL_day$ud50_intersect_percentage)
+# 18.82319
+
 summary(df3dLL_day$udvol50_intersect_percentage)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 2.087   4.674   9.495  11.917  14.428  43.759
+sd(df3dLL_day$udvol50_intersect_percentage)
+# 9.484824
 
 # correlation test
 cor.test(df2dLL_day$ud50_intersect_percentage, df3dLL_day$udvol50_intersect_percentage, 
@@ -294,18 +337,22 @@ t.test(df2dLL_night$ud95_intersect_percentage, df3dLL_night$udvol95_intersect_pe
 
 # results: 
 # Paired t-test
-# t = 7.5806, df = 27, p-value = 3.735e-08
+# t = 8.5367, df = 27, p-value = 3.767e-09
 
 # ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD95
 #    for LL drinfting longlines
 
 summary(df2dLL_night$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 2.519   9.827  16.704  17.527  21.592  37.838
+# 7.259  16.679  28.832  27.692  36.883  55.396
+sd(df2dLL_night$ud95_intersect_percentage)
+# 13.76847
 
 summary(df3dLL_night$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 2.522   5.104   7.197   9.339  11.941  38.063
+sd(df3dLL_night$udvol95_intersect_percentage)
+# 8.083219
 
 # correlation test
 cor.test(df2dLL_night$ud95_intersect_percentage, df3dLL_night$udvol95_intersect_percentage, 
@@ -317,7 +364,7 @@ cor.test(df2dLL_night$ud95_intersect_percentage, df3dLL_night$udvol95_intersect_
 
 
 
-# UD 50 --------------------------------------------------------
+# UD 50 NIGHT --------------------------------------------------------
 # Normality test - Shapiro test
 shapiro.test((df2dLL_night$ud50_intersect_percentage)) # Normal
 shapiro.test((df3dLL_night$udvol50_intersect_percentage)) # No Normal
@@ -331,23 +378,29 @@ t.test(df2dLL_night$ud50_intersect_percentage, df3dLL_night$udvol50_intersect_pe
        paired = TRUE)
 
 # results: 
-# t = 6.3324, df = 27, p-value = 8.855e-07
+# t = 7.1174, df = 27, p-value = 1.184e-07
 
 # ✔  Higher values of % of intersection in 2D during the DAY than 3D for UD95
 #    for LL drinfting longlines
 
 summary(df2dLL_night$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-# 0.000   9.041  15.558  18.761  29.321  45.455
+#  1.504  15.022  28.705  29.043  42.770  71.144
+sd(df2dLL_night$ud50_intersect_percentage)
+# 18.57761
+
 summary(df3dLL_night$udvol50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 1.694   2.814   3.859   5.327   6.184  25.466
+sd(df3dLL_night$udvol50_intersect_percentage)
+#  4.857096
 
 # correlation test
 cor.test(df2dLL_day$ud50_intersect_percentage, df3dLL_day$udvol50_intersect_percentage, 
          method = "spearman")
 #   ✔  There is a positive correlation between the percentage of intersection
-
+# S = 916, p-value = 8.632e-06
+# 0.7493158
 #---------------- 
 # LL ----------------------------------------
 
@@ -386,17 +439,24 @@ t.test(df2dTW_day$ud95_intersect_percentage, df3dTW_day$udvol95_intersect_percen
 summary(df2dTW_day$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.3328  4.4124  9.8360 11.0991 16.9408 30.5085
+sd(df2dTW_day$ud95_intersect_percentage)
+# 8.232763
 
 summary(df3dTW_day$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 1.819   2.877   3.669   5.065   5.836  20.000 
+sd(df3dTW_day$udvol95_intersect_percentage)
+# 3.92539
 
 # correlation test
 cor.test(df2dTW_day$ud95_intersect_percentage, df3dTW_day$udvol95_intersect_percentage, 
          method = "spearman")
 
 #   XXX  NOT positive correlation between the percentage of intersection X
-
+# S = 3164, p-value = 0.4947
+# sample estimates:
+#   rho 
+# 0.1340996
 
 
 # UD 50 results -------------------
@@ -415,13 +475,12 @@ wilcox.test(df2dTW_day$ud50_intersect_percentage, df3dTW_day$udvol50_intersect_p
 summary(df2dTW_day$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #  0.000   3.326   9.119  10.582  17.232  28.346 
+sd(df2dTW_day$ud50_intersect_percentage)
+# 8.760581
 
 summary(df3dTW_day$udvol50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 1.773   2.265   2.689   4.400   3.981  22.424 
-
-sd(df2dTW_day$ud50_intersect_percentage)
-# 8.760581
 sd(df3dTW_day$udvol50_intersect_percentage)
 # 4.514201
 
@@ -430,7 +489,11 @@ cor.test(df2dTW_day$ud50_intersect_percentage, df3dTW_day$udvol50_intersect_perc
          method = "spearman")
 
 #   X Not positive correlation between the percentage of intersection X
-
+# S = 4258, p-value = 0.3989
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#   rho 
+# -0.1652983 
 
 
 
@@ -457,17 +520,25 @@ wilcox.test(df2dTW_night$ud95_intersect_percentage, df3dTW_night$udvol95_interse
 summary(df2dTW_night$ud95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 0.7194  1.9611  9.5296 10.0431 14.3191 26.6406  
+sd(df2dTW_night$ud95_intersect_percentage)
+# 7.941536
 
 summary(df3dTW_night$udvol95_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 # 1.761   2.669   3.948   5.536   6.201  21.068 8 
+sd(df3dTW_night$udvol95_intersect_percentage)
+# 4.373437
 
 # correlation test
 cor.test(df2dTW_night$ud95_intersect_percentage, df3dTW_night$udvol95_intersect_percentage, 
          method = "spearman")
 
 #   X Not positive correlation between the percentage of intersection X
-
+# S = 3038, p-value = 0.3895
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#   rho 
+# 0.1685824
 
 
 
@@ -488,13 +559,15 @@ wilcox.test(df2dTW_night$ud50_intersect_percentage, df3dTW_night$udvol50_interse
 summary(df2dTW_night$ud50_intersect_percentage)
 # Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #  0.000   2.777   5.548   8.588  10.893  32.338
+sd(df2dTW_night$ud50_intersect_percentage) 
+# 8.463291
 
 summary(df3dTW_night$udvol50_intersect_percentage)
 #  Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 #  1.694   2.255   2.618   4.362   4.155  22.026  
 
-sd(df2dTW_night$ud50_intersect_percentage) # 8.463291
-sd(df3dTW_night$udvol50_intersect_percentage) # 4.49186
+sd(df3dTW_night$udvol50_intersect_percentage) 
+# 4.49186
 
 # correlation test
 cor.test(df2dTW_night$ud50_intersect_percentage, df3dTW_night$udvol50_intersect_percentage, 
@@ -502,7 +575,11 @@ cor.test(df2dTW_night$ud50_intersect_percentage, df3dTW_night$udvol50_intersect_
 
 
 #   X Not positive correlation between the percentage of intersection X
-
+# S = 3734, p-value = 0.9124
+# alternative hypothesis: true rho is not equal to 0
+# sample estimates:
+#   rho 
+# -0.0218938
 
 
 

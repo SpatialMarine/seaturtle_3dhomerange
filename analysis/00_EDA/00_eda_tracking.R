@@ -9,6 +9,7 @@
 
 # 1) For dives
 # 2) For track (SSM - Tracking)
+# 3) Supplementary table of % of dive per depth ranges
 
 library(dplyr)
 library(ggplot2)
@@ -61,4 +62,28 @@ stats <- data %>%
   group_by(organismID) %>%
   summarise(
     dives <- n()) 
+
+
+
+# Supplementary table ---------------------------------------------------
+
+str(data)
+
+library(dplyr)
+library(tidyr)
+
+depth_bins <- c(0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180, 200, 240, 280, 320)
+
+global_summary <- data %>%
+  mutate(depth_bin = cut(maxdep, breaks = depth_bins, include.lowest = TRUE, right = FALSE)) %>%
+  group_by(depth_bin) %>%
+  summarise(n = n(), .groups = 'drop') %>%
+  mutate(percentage = (n / sum(n)) * 100)
+
+View(global_summary)
+print(global_summary)
+
+# export suplementaty table
+write.csv(global_summary, paste0(output_dir,"/05_statistics_results/sup_table_depth_bin_dive_prop.csv"), row.names = FALSE)
+
 
